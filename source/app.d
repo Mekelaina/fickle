@@ -15,18 +15,40 @@ void main(string[] args)
 {
 	if(args.length > 1) 
 	{
-		bool valid = parseCommands(args);
-		//writefln(format("%s", args));
+		parseCommands(args);
+		bool valid = areFilesInvalid(filesIn);
+
 		if(valid)
 		{
 			setFiles(filesIn);
-			//printFiles();
 			parseFiles();
 		}
 	}
 }
 
-bool parseCommands(string[] args) 
+bool areFilesInvalid(string[] files)
+{
+	bool invalidInFiles = false;
+    foreach (string f; filesIn) 
+    {
+        f = split(f, ".")[1];
+        //writefln(format("DEBUG: %s", f));
+        if(f != SOURCE_FILE) 
+        {
+            invalidInFiles = true;
+            break;
+        }
+    }
+    if(invalidInFiles || filesIn.length == 0) 
+    {
+        writefln("Error: Please provide either a .fkl binary or at least one .fic script file.");
+        return false;
+    }
+    writefln(format("Run: %s, Input: %s, Output: %s", runPostCompile, filesIn, fileOut));
+    return true;
+}
+
+void parseCommands(string[] args) 
 {	
 	arraySep = ",";
 	auto userIn = 
@@ -36,35 +58,4 @@ bool parseCommands(string[] args)
 	 "output|o", &fileOut,
 	 "files|file|f", &filesIn,
 	);
-
-	bool validInFiles = false;
-
-	if(filesIn.length == 1) 
-	{
-		string f = split(filesIn[0], ".")[1];
-		//writefln(format("DEBUG: %s", f));
-		if(f == SOURCE_FILE) 
-		{
-			validInFiles = true;
-		}
-	} 
-	else if (filesIn.length > 1) 
-	{
-		foreach (string f; filesIn) 
-		{
-			f = split(f, ".")[1];
-			//writefln(format("DEBUG: %s", f));
-			if(f == SOURCE_FILE) 
-			{
-				validInFiles = true;
-			}
-		}
-	}
-	else
-	{
-		writefln("Error: Please provide either a .fkl binary or at least one .fic script file.");
-	}
-	
-	writefln(format("Run: %s, Input: %s, Output: %s", runPostCompile, filesIn, fileOut));
-	return validInFiles;
 }
