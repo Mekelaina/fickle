@@ -7,6 +7,8 @@ import std.typecons;
 import std.algorithm;
 import std.array;
 
+import parsing.tokens;
+
 alias CodeBlock = Tuple!(string, "name", int, "startLine", int, "endLine");
 
 string[] files;
@@ -26,7 +28,9 @@ void parseFiles()
     Script s = Script(files[0], true);
     writefln(format("has subroutine: %s, subroutine count: %s, subroutines: %s", 
         s.hasSubroutines, s.subroutine_count, s.subroutines));
-    //writefln(s.toString());
+    
+    writefln(format("%s", Tokens.NULL.id));
+    writeln(Tokens.NULL);
 }
 
 struct Script
