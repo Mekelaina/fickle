@@ -1,5 +1,6 @@
 .dub
 app
+build.sh
 *.exe
 *.o
 *.obj
