@@ -25,7 +25,8 @@ void parseFiles()
 {
     Script s = Script(files[0], true);
     writefln(format("has subroutine: %s, subroutine count: %s, subroutines: %s", 
-    s.hasSubroutines, s.subroutine_count, s.subroutines));
+        s.hasSubroutines, s.subroutine_count, s.subroutines));
+    //writefln(s.toString());
 }
 
 struct Script
