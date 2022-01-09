@@ -14,3 +14,4 @@ hello-test-*
 *.obj
 *.lst
 *.fic
+*.bat
