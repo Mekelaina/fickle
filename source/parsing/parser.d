@@ -29,8 +29,8 @@ void parseFiles()
     writefln(format("has subroutine: %s, subroutine count: %s, subroutines: %s", 
         s.hasSubroutines, s.subroutine_count, s.subroutines));
     
-    writefln(format("%s", Tokens.NULL.id));
-    writeln(Tokens.NULL);
+    writefln(format("%s", TokenTypes.NULL.id));
+    writeln(TokenTypes.NULL);
 }
 
 struct Script
