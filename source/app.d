@@ -43,6 +43,7 @@ struct CLInput
             writeln("Error: ", e.msg);
             exit(1);
         }
+        validateInput(clin);
         return res;
     }
 }
@@ -72,7 +73,6 @@ const string BINARY_FILE = "fkl";
 void main(string[] args) 
 {    
     auto clin = CLInput.parseCommands(args);
-    validateInput(clin);
     parseFiles(clin.filesIn);
 }
 
