@@ -76,6 +76,20 @@ void main(string[] args)
     parseFiles(clin.filesIn);
 }
 
+
+/*
+ * TODO: consider removing this function.
+ * checking if the file extension is correct
+ * may not be a good behavior. for example,
+ * if someone were to make a fickle source
+ * file with a shebang into an executable, 
+ * they would likely remove the extension.
+ * generally, extensions should be seen as
+ * annotations/suggestions rather than rules. 
+ * if a `.txt` file's content is valid
+ * fickle source, should we reject to compile it?
+ * maybe remove this? maybe add a flag to disable it?
+ */
 void validateInput(CLInput clin)
 in {
      /* there is a bug in CLInput.parseCommands
