@@ -26,6 +26,18 @@ struct Token
     TokenTypes type;
     string value;
 
+    /*
+    * this constructor is only here to solve a bug wihen trying to get the start loc
+    * of a token bc the length of an array is stored as a ulong not an int.
+    * we sould probably convert the value when creating the token, but i didnt
+    * want to chnge all that atm, so adding this niche contructor that converts
+    * the troublesome value is a dirty but quick fix.
+    */
+    this(int line, ulong startLoc, int endLoc, TokenTypes type, string value)
+    {
+        this(Location(line, cast(int) startLoc, endLoc), type, value);
+    }
+
     this(int line, int startLoc, int endLoc, TokenTypes type, string value)
     {
         this(Location(line, startLoc, endLoc), type, value);
