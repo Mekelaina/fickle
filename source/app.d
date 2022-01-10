@@ -77,7 +77,7 @@ void main(string[] args)
     auto clin = CLInput.parseCommands(args);
     writeln(clin);
     Script[] scripts = parseFiles(clin.filesIn);
-    writeln(scripts);
+    //writeln(scripts);
     Token[] tokens = tokenizeScript(scripts[0]);
     writeln(tokens);
 }

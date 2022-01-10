@@ -96,5 +96,6 @@ enum TokenTypes: ubyte
     COLON = 33,
     LBRACE = 34,
     RBRACE = 35,
-    COMMA = 36
+    COMMA = 36,
+    COMMENT_TEXT = 37
 }

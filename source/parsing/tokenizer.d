@@ -19,6 +19,10 @@ const string[] BUILTINS =
     "dup","swp","drp","cyl","pek","flp","siz","if","jmp","ret","clr","cmp"
 ];
 
+const string[] REGISTERS = 
+[
+    "s0", "s1", "x", "y", "c"
+];
 
 struct Token
 {
@@ -64,11 +68,41 @@ bool isWordLiteral(string s)
     }
 }
 
+bool isRegister(string s)
+{
+    if(canFind(REGISTERS, s))
+    {
+        return true;
+    }
+    else
+    {
+        return false;    
+    }
+}
+
+bool isStringLiteral(string s)
+{
+    if(s[0] == '\"' && s[$-1] == '\"')
+    {
+        return true;
+    }
+    else if((s[0] != '\"' && s[$-1] == '\"') || (s[0] == '\"' && s[$-1] != '\"'))
+    {
+        writefln("ERROR: unclosed string literal `%s`", s);
+        return false;
+    }
+    else 
+    {
+        return false;
+    }
+}
+
 struct Location
 {
+    int line;
     int startLoc;
     int endLoc;
-    int line;
+    
 
     this(int line, int startLoc, int endLoc)
     {
@@ -81,6 +115,7 @@ struct Location
 public Token[] tokenizeScript(Script script)
 {
     Token[] tokens;
+    string[] knownSubroutines;
     
     for(int line = 0; line < script.lines; line++)
     {
@@ -189,14 +224,61 @@ public Token[] tokenizeScript(Script script)
                                 line, cha-current.length, cha-1,
                                 TokenTypes.WORD_LITERAL, current);
                         }
+                        else if(isRegister(current))
+                        {
+                            tokens ~= Token(
+                                line, cha-current.length, cha-1,
+                                TokenTypes.STRING_REGISTER, current);
+                        }
+                        else if(isStringLiteral(current))
+                        {
+                            tokens ~= Token(
+                                line, cha-current.length, cha-1,
+                                TokenTypes.STRING_LITERAL, current);
+                        }
                         /* TODO: Add elifs here to handle multi-char tokens. */
                         else 
                         {
                             writefln("Error: unrecognized token %s", current);
+                            
                         }
-                        break;
+                        //break;
+
+                    
 
                         //TODO: finish tokenizing based on previous token here
+                        Token prevTok = tokens[$-1];
+                        string currentScope =  "";
+
+                        switch(prevTok.type)
+                        {
+                            case TokenTypes.SUBR_DEF:
+                                tokens ~= Token(
+                                line, cha-current.length, cha-1,
+                                TokenTypes.SUBR_NAME, current);
+                                currentScope = current;
+                                break;
+                            case TokenTypes.SUBR_NAME:
+                                if(prevTok.loc.line == line)
+                                {
+                                    tokens ~= Token(
+                                    line, cha-current.length, cha-1,
+                                    TokenTypes.SUBR_ARG, current);
+                                    currentScope = current;
+                                    knownSubroutines ~= current; 
+                                }
+                                break;
+                            case TokenTypes.COMMENT_MARK:
+                                tokens ~= Token(
+                                line, cha-current.length, cha-1,
+                                TokenTypes.COMMENT_TEXT, 
+                                currentline[prevTok.loc.startLoc+1..$-1]);
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
                 }
                 current = "";
             }
