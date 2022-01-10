@@ -20,10 +20,11 @@ struct CLInput
     static CLInput parseCommands(string[] args) 
     {    
         CLInput res = CLInput.defaults();
+        GetoptResult optRes; 
         arraySep = ",";
         try
         {
-            auto optRes = getopt(
+            optRes = getopt(
                 args,
                 config.bundling,
                 "run|r", &res.runPostCompile,
@@ -44,7 +45,7 @@ struct CLInput
           exit(0);
         }
  
-        validateInput(clin);
+        validateInput(res);
         return res;
     }
 }
@@ -74,7 +75,11 @@ const string BINARY_FILE = "fkl";
 void main(string[] args) 
 {    
     auto clin = CLInput.parseCommands(args);
+    writeln(clin);
     Script[] scripts = parseFiles(clin.filesIn);
+    writeln(scripts);
+    Token[] tokens = tokenizeScript(scripts[0]);
+    writeln(tokens);
 }
 
 
