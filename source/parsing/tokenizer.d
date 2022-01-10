@@ -158,35 +158,35 @@ public Token[] tokenizeScript(Script script)
                         break;
                     case MAIN_START:
                         tokens ~= Token(
-                            line, cha-MAIN_START.length-1, cha-1, 
+                            line, cha-MAIN_START.length, cha-1, 
                             TokenTypes.MAIN_START, current);
                         break;
                     case MAIN_END:
                         tokens ~= Token(
-                            line, cha-MAIN_END.length-1, cha-1,
+                            line, cha-MAIN_END.length, cha-1,
                             TokenTypes.MAIN_END, current);
                         break;
                     case SUBR_DEF:
                         tokens ~= Token(
-                            line, cha-SUBR_DEF.length-1, cha-1,
+                            line, cha-SUBR_DEF.length, cha-1,
                             TokenTypes.SUBR_DEF, current);
                         break;
                     case INC_BUILTIN:
                         tokens ~= Token(
-                            line, cha-INC_BUILTIN.length-1, cha-1,
+                            line, cha-INC_BUILTIN.length, cha-1,
                             TokenTypes.INCLUDE, current);
                         break;
                     default:
                         if(canFind(BUILTINS, current))
                         {
                             tokens ~= Token(
-                                line, cha-current.length-1, cha-1,
+                                line, cha-current.length, cha-1,
                                 TokenTypes.INTRINSIC_CALL, current);
                         }
                         else if (isWordLiteral(current))
                         {
                             tokens ~= Token(
-                                line, cha-current.length-1, cha-1,
+                                line, cha-current.length, cha-1,
                                 TokenTypes.WORD_LITERAL, current);
                         }
                         /* TODO: Add elifs here to handle multi-char tokens. */
