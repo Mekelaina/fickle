@@ -10,7 +10,8 @@ const string MAIN_START = " fic";
 const string MAIN_END = "kle";
 const string SUBR_DEF = "def";
 const string INC_BUILTIN = "inc";
-const string[] BUILTINS = ["mov","prt","inp","add","sub","mul","div","mod","lsl","lsr","asl",
+const string[] BUILTINS = 
+[   "mov","prt","inp","add","sub","mul","div","mod","lsl","lsr","asl",
     "asr","lcl","lcr","acl","acr","and","or","xor","not","neg","psh","pop",
     "dup","swp","drp","cyl","pek","flp","siz","if","jmp","ret","clr","cmp"
 ];
@@ -52,9 +53,7 @@ struct Location
 public Token[] tokenizeScript(Script script)
 {
     Token[] tokens;
-    //int[] knownLines = getLines(script);
     
-
     for(int line = 0; line < script.lines; line++)
     {
         auto currentline = script.fileContent[line];
@@ -143,13 +142,10 @@ public Token[] tokenizeScript(Script script)
 
                         //TODO: finish tokenizing based on previous token here
                 }
-
                 current = "";
             }
-
         }
     
     }
-
     return tokens;
 }
