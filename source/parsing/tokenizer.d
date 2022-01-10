@@ -1,12 +1,13 @@
 module parsing.tokenizer;
 
 import std.algorithm;
-import std.ascii;
+import std.uni;
+import std.stdio;
 
 import parsing.tokentype;
 import parsing.parser;
 
-const string MAIN_START = " fic";
+const string MAIN_START = "fic";
 const string MAIN_END = "kle";
 const string SUBR_DEF = "def";
 const string INC_BUILTIN = "inc";
@@ -56,7 +57,19 @@ public Token[] tokenizeScript(Script script)
     
     for(int line = 0; line < script.lines; line++)
     {
-        auto currentline = script.fileContent[line];
+       auto currentline = script.fileContent[line];
+       currentline ~= " "; 
+        /* append a space to the end of the line. this 
+           is a dirty patch for a a bug we have here. 
+           as we go through the characters in a line, we
+           only collect multi-character tokens after finding
+           whitespace. if a multi-character token is not
+           followed by whitespace (is the case at the 
+           end of the line, because \n is removed somewhere
+           in the process of getting `fileContent`.)
+          
+           BUG: collecting multichar tokens fails at EOL
+        */
         string current = "";
 
         for(int cha = 0; cha < currentline.length; cha++)
@@ -137,6 +150,10 @@ public Token[] tokenizeScript(Script script)
                             tokens ~= Token(
                                 line, cha-current.length-1, cha-1,
                                 TokenTypes.INTRINSIC_CALL, current);
+                        }
+                        else 
+                        {
+                            writefln("Error: unrecognized token %s", current);
                         }
                         break;
 
