@@ -74,7 +74,7 @@ const string BINARY_FILE = "fkl";
 void main(string[] args) 
 {    
     auto clin = CLInput.parseCommands(args);
-    parseFiles(clin.filesIn);
+    Script[] scripts = parseFiles(clin.filesIn);
 }
 
 
