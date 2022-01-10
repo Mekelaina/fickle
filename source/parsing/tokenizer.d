@@ -172,7 +172,10 @@ public Token[] tokenizeScript(Script script)
                         tokens ~= Token(line, cha, cha, TokenTypes.RBRACE, [c]);
                         break;
                     case ',':
+                        tokens = secondCheck(line, cha, current, currentline, knownSubroutines, tokens);
+                        current = "";
                         tokens ~= Token(line, cha, cha, TokenTypes.COMMA, [c]);
+                        
                         break;
                     case ':':
                         tokens ~= Token(line, cha, cha, TokenTypes.COLON, [c]);
@@ -184,106 +187,121 @@ public Token[] tokenizeScript(Script script)
             }
             else
             {
-                switch(current)
-                {
-                    case "":
-                        /* multiple whitespace in succession
-                           generates empty `current`, skip
-                           these cases */
-                        break;
-                    case MAIN_START:
-                        tokens ~= Token(
-                            line, cha-MAIN_START.length, cha-1, 
-                            TokenTypes.MAIN_START, current);
-                        break;
-                    case MAIN_END:
-                        tokens ~= Token(
-                            line, cha-MAIN_END.length, cha-1,
-                            TokenTypes.MAIN_END, current);
-                        break;
-                    case SUBR_DEF:
-                        tokens ~= Token(
-                            line, cha-SUBR_DEF.length, cha-1,
-                            TokenTypes.SUBR_DEF, current);
-                        break;
-                    case INC_BUILTIN:
-                        tokens ~= Token(
-                            line, cha-INC_BUILTIN.length, cha-1,
-                            TokenTypes.INCLUDE, current);
-                        break;
-                    default:
-                        if(canFind(BUILTINS, current))
-                        {
-                            tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.INTRINSIC_CALL, current);
-                        }
-                        else if (isWordLiteral(current))
-                        {
-                            tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.WORD_LITERAL, current);
-                        }
-                        else if(isRegister(current))
-                        {
-                            tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.STRING_REGISTER, current);
-                        }
-                        else if(isStringLiteral(current))
-                        {
-                            tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.STRING_LITERAL, current);
-                        }
-                        /* TODO: Add elifs here to handle multi-char tokens. */
-                        else 
-                        {
-                            writefln("Error: unrecognized token %s", current);
-                            
-                        }
-                        //break;
-
-                    
-
-                        //TODO: finish tokenizing based on previous token here
-                        Token prevTok = tokens[$-1];
-                        string currentScope =  "";
-
-                        switch(prevTok.type)
-                        {
-                            case TokenTypes.SUBR_DEF:
-                                tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.SUBR_NAME, current);
-                                currentScope = current;
-                                break;
-                            case TokenTypes.SUBR_NAME:
-                                if(prevTok.loc.line == line)
-                                {
-                                    tokens ~= Token(
-                                    line, cha-current.length, cha-1,
-                                    TokenTypes.SUBR_ARG, current);
-                                    currentScope = current;
-                                    knownSubroutines ~= current; 
-                                }
-                                break;
-                            case TokenTypes.COMMENT_MARK:
-                                tokens ~= Token(
-                                line, cha-current.length, cha-1,
-                                TokenTypes.COMMENT_TEXT, 
-                                currentline[prevTok.loc.startLoc+1..$-1]);
-                                break;
-
-                            default:
-                                break;
-                        }
-                        break;
-                }
+                tokens = secondCheck(line, cha, current, currentline, knownSubroutines, tokens);
                 current = "";
             }
         }
     
     }
+    return tokens;
+}
+
+/*
+* This is a hacky way to solve a bug with the special chars that
+* are used for things but are not seperated by a whitespace.
+* can thus call the check when one of those chars is encountered to
+* enusre the token before it is processed correctly.
+* TODO: refactor to make this not needed.
+*/
+Token[] secondCheck(int line, int cha, string current, 
+string currentline, string[] knownSubroutines, Token[] tokens)
+{
+    switch(current)
+    {
+        case "":
+            /* multiple whitespace in succession
+                generates empty `current`, skip
+                these cases */
+            break;
+        case MAIN_START:
+            tokens ~= Token(
+                line, cha-MAIN_START.length, cha-1, 
+                TokenTypes.MAIN_START, current);
+            break;
+        case MAIN_END:
+            tokens ~= Token(
+                line, cha-MAIN_END.length, cha-1,
+                TokenTypes.MAIN_END, current);
+            break;
+        case SUBR_DEF:
+            tokens ~= Token(
+                line, cha-SUBR_DEF.length, cha-1,
+                TokenTypes.SUBR_DEF, current);
+            break;
+        case INC_BUILTIN:
+            tokens ~= Token(
+                line, cha-INC_BUILTIN.length, cha-1,
+                TokenTypes.INCLUDE, current);
+            break;
+        default:
+            if(canFind(BUILTINS, current))
+            {
+                tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.INTRINSIC_CALL, current);
+            }
+            else if (isWordLiteral(current))
+            {
+                tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.WORD_LITERAL, current);
+            }
+            else if(isRegister(current))
+            {
+                tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.STRING_REGISTER, current);
+            }
+            else if(isStringLiteral(current))
+            {
+                tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.STRING_LITERAL, current);
+            }
+            /* TODO: Add elifs here to handle multi-char tokens. */
+            else 
+            {
+                writefln("Error: unrecognized token %s", current);
+                
+            }
+            //break;
+
+        
+
+            //TODO: finish tokenizing based on previous token here
+            Token prevTok = tokens[$-1];
+            string currentScope =  "";
+
+            switch(prevTok.type)
+            {
+                case TokenTypes.SUBR_DEF:
+                    tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.SUBR_NAME, current);
+                    currentScope = current;
+                    break;
+                case TokenTypes.SUBR_NAME:
+                    if(prevTok.loc.line == line)
+                    {
+                        tokens ~= Token(
+                        line, cha-current.length, cha-1,
+                        TokenTypes.SUBR_ARG, current);
+                        currentScope = current;
+                        knownSubroutines ~= current; 
+                    }
+                    break;
+                case TokenTypes.COMMENT_MARK:
+                    tokens ~= Token(
+                    line, cha-current.length, cha-1,
+                    TokenTypes.COMMENT_TEXT, 
+                    currentline[prevTok.loc.startLoc+1..$-1]);
+                    break;
+
+                default:
+                    break;
+            }
+            break;
+    }
+
     return tokens;
 }
