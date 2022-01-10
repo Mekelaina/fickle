@@ -3,6 +3,8 @@ module parsing.tokenizer;
 import std.algorithm;
 import std.uni;
 import std.stdio;
+import std.conv;
+import std.stdint;
 
 import parsing.tokentype;
 import parsing.parser;
@@ -34,6 +36,19 @@ struct Token
         this.loc = loc;
         this.type = type;
         this.value = value;
+    }
+}
+
+bool isWordLiteral(string s) 
+{
+    try
+    {
+        s.parse!int16_t();
+        return true;
+    } 
+    catch (ConvException e)
+    {
+        return false;
     }
 }
 
@@ -124,6 +139,11 @@ public Token[] tokenizeScript(Script script)
             {
                 switch(current)
                 {
+                    case "":
+                        /* multiple whitespace in succession
+                           generates empty `current`, skip
+                           these cases */
+                        break;
                     case MAIN_START:
                         tokens ~= Token(
                             line, cha-MAIN_START.length-1, cha-1, 
@@ -151,6 +171,13 @@ public Token[] tokenizeScript(Script script)
                                 line, cha-current.length-1, cha-1,
                                 TokenTypes.INTRINSIC_CALL, current);
                         }
+                        else if (isWordLiteral(current))
+                        {
+                            tokens ~= Token(
+                                line, cha-current.length-1, cha-1,
+                                TokenTypes.WORD_LITERAL, current);
+                        }
+                        /* TODO: Add elifs here to handle multi-char tokens. */
                         else 
                         {
                             writefln("Error: unrecognized token %s", current);
