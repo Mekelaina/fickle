@@ -11,26 +11,18 @@ import parsing.tokentype;
 
 alias CodeBlock = Tuple!(string, "name", int, "startLine", int, "endLine");
 
-string[] files;
-
-void setFiles(string[] f)
+Script[] parseFiles(string[] files)
 {
-    files = f;
-}
-
-void printFiles()
-{
-    writefln(format("%s", files));
-}
-
-void parseFiles()
-{
-    Script s = Script(files[0], true);
-    writefln(format("has subroutine: %s, subroutine count: %s, subroutines: %s", 
-        s.hasSubroutines, s.subroutine_count, s.subroutines));
+    Script[] acc = [];
+    acc ~= Script(files[0], true); 
+    /* TODO: add to specification and documentation that 
+       first file provided is assumed to be main file */
+    files.remove(0);
+    foreach (string file; files) {
+        acc ~= Script(file, false);
+    }
+    return acc;
     
-    writefln(format("%s", TokenTypes.NULL.id));
-    writeln(TokenTypes.NULL);
 }
 
 struct Script
