@@ -18,19 +18,19 @@ struct CLInput
     }
 
     static CLInput parseCommands(string[] args) 
-    {	
+    {    
         CLInput res = CLInput.defaults();
-    	arraySep = ",";
+        arraySep = ",";
         try
         {
-        	auto optRes = getopt(
+            auto optRes = getopt(
                 args,
                 config.bundling,
-        	    "run|r", &res.runPostCompile,
-        	    "output|o", &res.fileOut,
+                "run|r", &res.runPostCompile,
+                "output|o", &res.fileOut,
                 config.required, 
-        	    "files|file|f", &res.filesIn,
-        	);
+                "files|file|f", &res.filesIn,
+            );
             if (optRes.helpWanted)
             {
               usage(args[0]);
@@ -40,7 +40,7 @@ struct CLInput
         catch (GetOptException e)
         {
             usage(args[0]);
-            writeln(e.msg);
+            writeln("Error: ", e.msg);
             exit(1);
         }
         return res;
@@ -72,33 +72,33 @@ const string BINARY_FILE = "fkl";
 void main(string[] args) 
 {    
     auto clin = CLInput.parseCommands(args);
-    bool valid = areFilesInvalid(clin);
-    if(valid)
-    {
-    	setFiles(clin.filesIn);
-    	parseFiles();
-    }
+    validateInput(clin);
+    parseFiles(clin.filesIn);
 }
 
-bool areFilesInvalid(CLInput clin)
-{
-	bool invalidInFiles = false;
+void validateInput(CLInput clin)
+in {
+     /* there is a bug in CLInput.parseCommands
+        if clin.filesIn is empty. */
+     assert(clin.filesIn.length > 0); 
+} do { 
+    // TODO: consider using map-reduce here to validate
+    // rather than manual for loop for cleaner code
+    bool invalidInFiles = false;
     foreach (string f; clin.filesIn) 
     {
         string ext = split(f, ".")[1];
-        if(ext != SOURCE_FILE) 
+        if (ext != SOURCE_FILE) 
         {
             invalidInFiles = true;
             break;
         }
     }
-    if(invalidInFiles || clin.filesIn.length == 0) 
+    if (invalidInFiles)  
     {
-        writeln("Error: Please provide either a .fkl binary or at least one .fic script file.");
-        return false;
+        writeln("Error: Invalid input file(s): please provide a `.fic` fickle source file.");
+        exit(1); 
     }
-    writeln(clin);
-    return true;
 }
 
 
