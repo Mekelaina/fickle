@@ -22,7 +22,7 @@ struct Token
     TokenTypes type;
     string value;
 
-    this(short line, short startLoc, short endLoc, TokenTypes type, string value)
+    this(int line, int startLoc, int endLoc, TokenTypes type, string value)
     {
         this(Location(line, startLoc, endLoc), type, value);
     }
@@ -37,11 +37,11 @@ struct Token
 
 struct Location
 {
-    short startLoc;
-    short endLoc;
-    short line;
+    int startLoc;
+    int endLoc;
+    int line;
 
-    this(short line, short startLoc, short endLoc)
+    this(int line, int startLoc, int endLoc)
     {
         this.line = line;
         this.startLoc = startLoc;
@@ -68,43 +68,40 @@ public Token[] tokenizeScript(Script script)
                 switch(c)
                 {
                     case ';':
-                        tokens ~= Token(line, cha, cha, TokenTypes.COMMENT_MARK, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.COMMENT_MARK, [c]);
                         break;
                     case '%':
-                        tokens ~= Token(line, cha, cha, TokenTypes.DEC_MARK, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.DEC_MARK, [c]);
                         break;
                     case '$':
-                        tokens ~= Token(line, cha, cha, TokenTypes.HEX_MARK, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.HEX_MARK, [c]);
                         break;
                     case '&':
-                        tokens ~= Token(line, cha, cha, TokenTypes.BIN_MARK, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.BIN_MARK, [c]);
                         break;
                     case '!':
-                        tokens ~= Token(line, cha, cha, TokenTypes.REGISTER_MARK, c);
-                        break;
-                    case '%':
-                        tokens ~= Token(line, cha, cha, TokenTypes.DEC_MARK, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.REGISTER_MARK, [c]);
                         break;
                     case '#':
-                        tokens ~= Token(line, cha, cha, TokenTypes.NUM_FLAG, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.NUM_FLAG, [c]);
                         break;
                     case '?':
-                        tokens ~= Token(line, cha, cha, TokenTypes.ARG_FLAG, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.ARG_FLAG, [c]);
                         break;
                     case '@':
-                        tokens ~= Token(line, cha, cha, TokenTypes.LABEL, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.LABEL, [c]);
                         break;
                     case '[':
-                        tokens ~= Token(line, cha, cha, TokenTypes.LBRACE, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.LBRACE, [c]);
                         break;
                     case ']':
-                        tokens ~= Token(line, cha, cha, TokenTypes.RBRACE, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.RBRACE, [c]);
                         break;
                     case ',':
-                        tokens ~= Token(line, cha, cha, TokenTypes.COMMA, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.COMMA, [c]);
                         break;
                     case ':':
-                        tokens ~= Token(line, cha, cha, TokenTypes.COLON, c);
+                        tokens ~= Token(line, cha, cha, TokenTypes.COLON, [c]);
                         break;
                     default:
                         current ~= c;
