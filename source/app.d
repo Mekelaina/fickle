@@ -31,11 +31,6 @@ struct CLInput
                 config.required, 
                 "files|file|f", &res.filesIn,
             );
-            if (optRes.helpWanted)
-            {
-              usage(args[0]);
-              exit(0);
-            }
         }
         catch (GetOptException e)
         {
@@ -43,6 +38,12 @@ struct CLInput
             writeln("Error: ", e.msg);
             exit(1);
         }
+        if (optRes.helpWanted)
+        {
+          usage(args[0]);
+          exit(0);
+        }
+ 
         validateInput(clin);
         return res;
     }
