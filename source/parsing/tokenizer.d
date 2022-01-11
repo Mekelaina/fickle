@@ -21,7 +21,7 @@ const string[] BUILTINS =
 
 const string[] REGISTERS = 
 [
-    "s0", "s1", "x", "y", "c"
+    "s0", "s1", "b0", "b1", "w0", "w1", "f0", "f1", "a0", "a1", "x", "y", "c", "i", "o"
 ];
 
 struct Token
@@ -68,16 +68,40 @@ bool isWordLiteral(string s)
     }
 }
 
-bool isRegister(string s)
+int isRegister(string s)
 {
+    int rtn = -1;
     if(canFind(REGISTERS, s))
     {
-        return true;
+        switch(s)
+        {
+            case "b0", "b1":
+                rtn = 1;
+                break;
+            case "w0", "w1":
+                rtn = 2;
+                break;
+            case "f0", "f1":
+                rtn = 3;
+                break;
+            case "a0", "a1":
+                rtn = 4;
+            case "s0", "s1":
+                rtn = 5;
+                break;
+            case "x", "y", "c":
+                rtn = 6;
+                break;
+            case "i", "o":
+                rtn = 7;
+                break;
+            default:
+                rtn = 0;
+                break;
+        }
     }
-    else
-    {
-        return false;    
-    }
+    return rtn;
+    
 }
 
 bool isStringLiteral(string s)
@@ -246,11 +270,49 @@ string currentline, string[] knownSubroutines, Token[] tokens)
                     line, cha-current.length, cha-1,
                     TokenTypes.WORD_LITERAL, current);
             }
-            else if(isRegister(current))
+            else if(isRegister(current) > 0)
             {
-                tokens ~= Token(
-                    line, cha-current.length, cha-1,
-                    TokenTypes.STRING_REGISTER, current);
+                final switch(isRegister(current))
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.BYTE_REGISTER, current);
+                        break;
+                    case 2:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.WORD_REGISTER, current);
+                        break;
+                    case 3:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.FLOAT_REGISTER, current);
+                        break;
+                    case 4:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.CHAR_REGISTER, current);
+                        break;
+                    case 5:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.STRING_REGISTER, current);
+                        break;
+                    case 6:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.FLAG_REGISTER, current);
+                        break;
+                    case 7:
+                        tokens ~= Token(
+                            line, cha-current.length, cha-1,
+                            TokenTypes.FILE_REGISTER, current);
+                        break;
+
+                }
             }
             else if(isStringLiteral(current))
             {
