@@ -2,5 +2,3 @@ fic
 	mov s0, "hello" 
 	prt s0
 kle
-
-

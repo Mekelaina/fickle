@@ -62,11 +62,11 @@
 			"match": "\b(^;\\s.+[\\w$])|(^;.+[\\w$])|(^;\\s)|(^;)\b"
 		},
 		"labels": {
-			"name": "keyword.control.label.fickle",
+			"name": "keyword.other.unit",
 			"match": "\b(^@.+\\S\\W)\b"
 		},
 		"numbers": {
-			"name": "constant.numeric.fickle",
+			"name": "constant.numeric",
 			"patterns": [
 				{
 					"name": "constant.numeric.decimal.fickle",
