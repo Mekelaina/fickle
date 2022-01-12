@@ -1,6 +1,6 @@
 {
     "name": "fickle",
-    "displayName": "ficklelang",
+    "displayName": "Fickle",
     "description": "support for fickle esolang",
     "version": "0.0.1",
     "engines": {

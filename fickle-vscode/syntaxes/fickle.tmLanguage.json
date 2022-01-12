@@ -3,17 +3,36 @@
 	"name": "Fickle",
 	"patterns": [
 		{
+			"include": "#comments"
+		},
+		{
+			"include": "#labels"
+		},
+		{
 			"include": "#keywords"
 		},
 		{
+			"include": "#registers"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
 			"include": "#strings"
+		},
+		{
+			"include": "#characters"
 		}
 	],
 	"repository": {
 		"keywords": {
 			"patterns": [{
-				"name": "keyword.control.fickle",
-				"match": "\\b(if|while|for|return)\\b"
+				"name": "keyword.other.intrinsic.fickle",
+				"match": "\\b(fic|kle|mov|prt|inp|add|sub|mul|div|mod|lsl|lsr|asl|asr|lcl|lcr|acl|acr|and|or|xor|not|neg|psh|pop|dup|swp|drp|cyl|pek|flp|siz|clr)\\b"
+			},
+			{
+				"name": "keyword.control.compiler.fickle",
+				"match": "\\b(def|inc|ret|if|jmp|cmp)\\b"
 			}]
 		},
 		"strings": {
@@ -26,6 +45,46 @@
 					"match": "\\\\."
 				}
 			]
+		},
+		"characters": {
+			"name": "string.quoted.single.fickle",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.fickle",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments": {
+			"name": "comment.line",
+			"match": "\b(^;\\s.+[\\w$])|(^;.+[\\w$])|(^;\\s)|(^;)\b"
+		},
+		"labels": {
+			"name": "keyword.control.label.fickle",
+			"match": "\b(^@.+\\S\\W)\b"
+		},
+		"numbers": {
+			"name": "constant.numeric.fickle",
+			"patterns": [
+				{
+					"name": "constant.numeric.decimal.fickle",
+					"match": "(^%[0-9]+)"
+				},
+				{
+					"name":"constant.numeric.hexidecimal.fickle",
+					"match": "(^\\$[0-9a-fA-F]+)"
+				},
+				{
+					"name": "constant.numeric.binary.fickle",
+					"match": "(^\\&[0-1]+)"
+				}
+			]
+		},
+		"registers": {
+			"name":"keyword.control.register",
+			"match": "\b(s0|s1|b0|b1|w0|w1|f0|f1|a0|a1|x|y|c|i|o|s?|b?|w?|f?|a?|z?|io?)\b"
 		}
 	},
 	"scopeName": "source.fickle"
