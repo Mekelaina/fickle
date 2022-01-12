@@ -1,0 +1,9 @@
+fic
+    foo
+kle
+
+def foo
+    mov s0, "Hello from foo"
+	prt s0
+    ret
+foo
