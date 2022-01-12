@@ -1,0 +1,3 @@
+[submodule "fickle-editor-extensions"]
+	path = fickle-editor-extensions
+	url = https://github.com/Mekelaina/fickle-editor-extensions
