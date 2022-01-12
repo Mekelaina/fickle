@@ -5,7 +5,7 @@ fic
     prt b0
 kle
 
-def ad1 b! b? : b!
+def ad1 b? b? : b?
     pop b1
     add b0, b1
     ret b0
