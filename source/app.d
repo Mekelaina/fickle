@@ -107,7 +107,8 @@ in {
     bool invalidInFiles = false;
     foreach (string f; clin.filesIn) 
     {
-        string ext = split(f, ".")[1];
+        string buf = split(f, "\\")[$-1];
+        string ext = split(buf, ".")[1];
         if (ext != SOURCE_FILE) 
         {
             invalidInFiles = true;

@@ -5,6 +5,6 @@ build.sh
 *.o
 *.obj
 *.lst
-*.fic
 *.bat
 *.code-workspace
+*.ps1

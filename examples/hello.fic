@@ -1,0 +1,4 @@
+fic
+	mov s0, "Hello"
+	prt s0
+kle
