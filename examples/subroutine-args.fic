@@ -1,0 +1,12 @@
+fic
+    mov b0 %10
+    mov b1 %5
+    ad1 b0, b1
+    prt b0
+kle
+
+def ad1 b? b? : b?
+    pop b1
+    add b0, b1
+    ret b0
+foo

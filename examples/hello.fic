@@ -1,4 +1,4 @@
 fic
-	mov s0, "Hello"
+	mov s0, "hello" 
 	prt s0
 kle
