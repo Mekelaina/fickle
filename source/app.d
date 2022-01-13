@@ -72,13 +72,15 @@ void usage(string programName)
 const string SOURCE_FILE = "fic";
 const string BINARY_FILE = "fkl";
 
+
+
 void main(string[] args) 
 {    
     auto clin = CLInput.parseCommands(args);
     writeln(clin);
     Script[] scripts = parseFiles(clin.filesIn);
     //writeln(scripts);
-    Token[] tokens = tokenizeScript(scripts[0]);
+    Token[] tokens = tokenize(scripts[0]);
     writeln(tokens);
 }
 
