@@ -1,4 +1,4 @@
-module parsing.tokenizer;
+module compiler.tokenizer;
 
 import std.algorithm;
 import std.utf;
@@ -9,8 +9,8 @@ import std.stdint;
 
 import core.stdc.stdlib; 
 
-import parsing.tokentype;
-import parsing.parser;
+import compiler.tokentype;
+import compiler.parser;
 
 const string MAIN_START = "fic";
 const string MAIN_END = "kle";
