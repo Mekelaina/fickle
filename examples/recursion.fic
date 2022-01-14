@@ -6,12 +6,12 @@ kle
 
 def foo b!
     bnd b0
-    == y, b0, %0
+    eql y, b0, %0
     if y, stop, iterate
-    @stop
+@stop
     ret b0
     @iterate
     sub b0, %1
     foo b0
     ret
-end foo
+end foo 
