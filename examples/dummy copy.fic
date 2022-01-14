@@ -9,4 +9,4 @@ def foo b? : b?
     @test
     sub b0, &1001
     ret foo b0
-foo
+end foo
