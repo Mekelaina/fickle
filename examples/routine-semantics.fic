@@ -1,0 +1,60 @@
+; three similar routines all add 2 words together
+
+; this first one has the exact same behavior as the `add` intrinsic. (it has no effect on the stack)
+def aad w! w?
+    ; when a routine is called with arguments, arguments are pushed to the stack before the body of the routine is executed.
+    ; if those arguments are marked with !, that means that they are a register or pointer. if those arguments are marked with ?, that means that
+    ; they are a value. if a pointer or register is passed in a place that a value is expected, it is automatically dereferenced.
+    bnd w0 ; pop a register from the stack (denoted by !) 
+           ; and bind it to w0, in other words make w0 the same register as it. 
+           ; internally, this is implemented by making this scope's w0 point 
+           ; to the same place in memory as the register passed in does.
+    pop w1 ; pop a value from the  stack (denoted by ?)
+    add w0, w1 ; add those two values together and store the result in w0
+               ; because w0 is bound, modifying it inside this routine modifies the pointer or register which was passed in.
+    ret ; don't return anything because we modified something instead
+end aad
+
+; this one returns a value (on the stack) rather than modifying anything. (it pushes a value to the stack)
+def aad w? w? : w 
+    ; both values passed in are pushed onto the stack
+    pop w0 ; pop a value from the stack into w0
+    pop w1 ; pop a value from the stack into w1
+    add w0, w1 ; add those two together and store the result in w0
+    ret w0 ; push the value at w0 onto the stack and return
+end aad
+
+; this one captures two values on the stack rather than being passed anything. (it pops two values from the stack and pushes a value)
+def aad w w : w
+    ; here, the inputs before the colon are not arguments because they are unmarked. rather, these are *stack expectations*. 
+    ; this semantically means that in order for this function to be called, there must be two words on the stack.
+    pop w0 ; pop a value from the stack
+    pop w1 ; pop a value from the stack
+    add w0, w1 ; add those two together
+    ret w0 ; push the value at w0 onto the stack and return
+end aad
+
+; one thing you probably notice is that the body of the 2nd and 3rd are exactly the same!
+; yes. the difference is that the 3rd routine does not take arguments because there's no
+; argument markings (no ! or ?) on the input. therefore the input is expected to be on 
+; the stack and checked during typechecking.
+
+; calling 2nd routine:
+mov w0, %20
+mov w1, %400
+aad w0, w1
+pop w2
+prn w2
+
+; calling 3rd routine:
+push %20
+push %400
+aad
+pop w0
+prn w0
+
+; calling 1st routine:
+mov w0, %20
+mov w1, &400
+aad w0, w1
+prn w0
