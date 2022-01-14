@@ -1,0 +1,17 @@
+fic
+    psh b0, %10
+    foo b0
+    prt b0
+kle
+
+def foo b!
+    bnd b0
+    == y, b0, %0
+    if y, stop, iterate
+    @stop
+    ret b0
+    @iterate
+    sub b0, %1
+    foo b0
+    ret
+end foo

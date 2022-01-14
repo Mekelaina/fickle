@@ -1,0 +1,12 @@
+fic
+    psh b0, %10
+    foo b0
+    prt b0
+kle
+
+def foo b? : b?
+    if b0 == %0, ret b0, jmp iterate
+    @test
+    sub b0, &1001
+    ret foo b0
+foo
