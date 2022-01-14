@@ -36,8 +36,7 @@ end aad
 
 ; one thing you probably notice is that the body of the 2nd and 3rd are exactly the same!
 ; yes. the difference is that the 3rd routine does not take arguments because there's no
-; argument markings (no ! or ?) on the input. therefore the input is expected to be on 
-; the stack and checked during typechecking.
+; argument markings (no ! or ?) on the input. therefore the input is expected to be on the stack.
 
 
 fic
