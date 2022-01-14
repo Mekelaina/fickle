@@ -1,4 +1,4 @@
-module parsing.parser;
+module compiler.parser;
 
 import std.stdio;
 import std.conv;
@@ -7,7 +7,7 @@ import std.typecons;
 import std.algorithm;
 import std.array;
 
-import parsing.tokentype;
+import compiler.tokentype;
 
 alias CodeBlock = Tuple!(string, "name", int, "startLine", int, "endLine");
 

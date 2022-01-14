@@ -2,7 +2,7 @@ import std.stdio;
 import std.format;
 import std.getopt;
 import std.array;
-import parsing;
+import compiler;
 import std.stdio;
 import core.stdc.stdlib;
 
