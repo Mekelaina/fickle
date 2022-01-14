@@ -39,22 +39,25 @@ end aad
 ; argument markings (no ! or ?) on the input. therefore the input is expected to be on 
 ; the stack and checked during typechecking.
 
-; calling 2nd routine:
-mov w0, %20
-mov w1, %400
-aad w0, w1
-pop w2
-prn w2
 
-; calling 3rd routine:
-push %20
-push %400
-aad
-pop w0
-prn w0
+fic
+    ; calling 1st routine:
+    mov w0, %20
+    mov w1, &400
+    aad w0, w1
+    prn w0
+    
+    ; calling 2nd routine:
+    mov w0, %20
+    mov w1, %400
+    aad w0, w1
+    pop w2
+    prn w2
 
-; calling 1st routine:
-mov w0, %20
-mov w1, &400
-aad w0, w1
-prn w0
+    ; calling 3rd routine:
+    push %20
+    push %400
+    aad
+    pop w0
+    prn w0
+kle
