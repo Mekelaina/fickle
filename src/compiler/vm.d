@@ -42,15 +42,15 @@ struct Ram {
 
     void clearRam()
     {
-        ram.clear();
+        ram[0..$] = 0;
     }
 
-    void insertAt(ushort loc, auto value)
+    void insertAt(ushort loc, ubyte value)
     {
-        mapToRange(loc, loc, value);
+        mapToRange(loc, loc, RegisterValue(value));
     }
 
-    void mapToRange(ushort start, ushort end, auto value)
+    void mapToRange(ushort start, ushort end, RegisterValue value)
     in {
         assert((end-start) % value.sizeof == 0);
     } do {
@@ -70,7 +70,8 @@ struct Stack {
 
     void clearStack()
     {
-        stack.clear();
+        stack[0..stackPointer] = RegisterValue(0);
+        stackPointer = 0;
     }
 
     void push (RegisterValue value)
@@ -126,18 +127,18 @@ struct Stack {
         return stackPointer;
     }
 
-    void cycle(ushort elements, ushort cycles)
+    void cycleStack(ushort elements, ushort cycles)
     in {
         assert(cycles < elements);
     } do {
-        auto buffer = stack[(stackPointer-elements)..(stackPointer)];
-        auto temp = range.cycle(buffer).take(elements*2);
+        RegisterValue buffer = stack[(stackPointer-elements)..(stackPointer)];
+        RegisterValue temp = cycle(buffer).take(elements*2);
         stack[stackPointer-elements..stackPointer] = temp[cycles..elements];
     }
 
     void flip()
     {
-        RegisterValue buffer;
+        RegisterValue[] buffer;
         int count = 0;
         for(int i = stackPointer; i > 0; i--)
         {
@@ -160,20 +161,22 @@ struct Scope {
     */
     uintptr_t[AMT_REGISTERS] ptrs; 
     Registers underlying; 
+    Ram ram = Ram();
+    Stack stack = Stack();
 
     static Scope create() {
        auto res = Scope();
        res.underlying = Registers();
-       ptrs[R.b0] = &res.underlying.b0; 
-       ptrs[R.b1] = &res.underlying.b1; 
-       ptrs[R.w0] = &res.underlying.w0; 
-       ptrs[R.w1] = &res.underlying.w1; 
-       ptrs[R.f0] = &res.underlying.f0; 
-       ptrs[R.f1] = &res.underlying.f1; 
-       ptrs[R.c0] = &res.underlying.c0; 
-       ptrs[R.c1] = &res.underlying.c1; 
-       ptrs[R.x ] = &res.underlying.x;    
-       ptrs[R.y ] = &res.underlying.y;    
+       this.ptrs[R.b0] = &res.underlying.b0; 
+       this.ptrs[R.b1] = &res.underlying.b1; 
+       this.ptrs[R.w0] = &res.underlying.w0; 
+       this.ptrs[R.w1] = &res.underlying.w1; 
+       this.ptrs[R.f0] = &res.underlying.f0; 
+       this.ptrs[R.f1] = &res.underlying.f1; 
+       this.ptrs[R.c0] = &res.underlying.c0; 
+       this.ptrs[R.c1] = &res.underlying.c1; 
+       this.ptrs[R.x ] = &res.underlying.x;    
+       this.ptrs[R.y ] = &res.underlying.y;    
        return res;
     }
     void mov(R register, RegisterValue val)
@@ -222,7 +225,7 @@ struct Scope {
 }
 
 
-void main() {
+void test() {
 
     auto mainScope = Scope.create();
     mainScope.mov(R.w0, 420);

@@ -76,12 +76,14 @@ const string BINARY_FILE = "fkl";
 
 void main(string[] args) 
 {    
-    auto clin = CLInput.parseCommands(args);
+    /* auto clin = CLInput.parseCommands(args);
     writeln(clin);
     Script[] scripts = parseFiles(clin.filesIn);
     //writeln(scripts);
     Token[] tokens = tokenize(scripts[0]);
-    writeln(tokens);
+    writeln(tokens); */
+
+    compiler.test();
 }
 
 
