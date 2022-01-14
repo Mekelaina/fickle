@@ -5,7 +5,7 @@ def aad w! w?
     ; when a routine is called with arguments, arguments are pushed to the stack before the body of the routine is executed.
     ; if those arguments are marked with !, that means that they are a register or pointer. if those arguments are marked with ?, that means that
     ; they are a value. if a pointer or register is passed in a place that a value is expected, it is automatically dereferenced.
-    bnd w0 ; pop a register from the stack (denoted by !) 
+    bnd w0 ; pop a register or pointer from the stack (denoted by !) 
            ; and bind it to w0, in other words make w0 the same register as it. 
            ; internally, this is implemented by making this scope's w0 point 
            ; to the same place in memory as the register passed in does.
