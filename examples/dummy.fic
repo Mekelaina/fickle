@@ -6,7 +6,7 @@ kle
 
 def foo b? : b?
     if b0 == %0, ret b0, jmp iterate
-    @iterate
-    sub b0, %1
+    @test
+    sub b0, &1001
     ret foo b0
 foo
