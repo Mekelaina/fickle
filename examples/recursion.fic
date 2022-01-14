@@ -4,9 +4,14 @@ fic
     prt b0
 kle
 
-def foo b? : b?
-    if b0 == %0, ret b0, jmp iterate
+def foo b!
+    bnd b0
+    == y, b0, %0
+    if y, stop, iterate
+    @stop
+    ret b0
     @iterate
     sub b0, %1
-    ret foo b0
-foo
+    foo b0
+    ret
+end foo
