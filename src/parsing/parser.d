@@ -7,7 +7,7 @@ import std.typecons;
 import std.algorithm;
 import std.array;
 
-import compiler.tokentype;
+import parsing.tokentype;
 
 alias CodeBlock = Tuple!(string, "name", int, "startLine", int, "endLine");
 

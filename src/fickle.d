@@ -5,6 +5,8 @@ import std.format;
 import std.getopt;
 import std.array;
 import compiler;
+import parsing;
+import machine;
 import std.stdio;
 import core.stdc.stdlib;
 
@@ -85,7 +87,7 @@ void main(string[] args)
     Token[] tokens = tokenize(scripts[0]);
     writeln(tokens); */
 
-    compiler.test();
+    machine.test();
 }
 
 

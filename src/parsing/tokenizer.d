@@ -9,8 +9,8 @@ import std.stdint;
 
 import core.stdc.stdlib; 
 
-import compiler.tokentype;
-import compiler.parser;
+import parsing.tokentype;
+import parsing.parser;
 
 const string MAIN_START = "fic";
 const string MAIN_END = "kle";
