@@ -200,10 +200,11 @@ struct Stack {
     
     private RegisterValue[1024] stack;
     private ushort stackPointer = 0;
+    private const RegisterValue ZERO = RegisterValue(cast(uint8_t) 0);
 
     void clearStack()
     {
-        stack[0..stackPointer] = RegisterValue(0);
+        stack[0..stackPointer] = ZERO;
         stackPointer = 0;
     }
 
@@ -219,7 +220,7 @@ struct Stack {
     RegisterValue pop ()
     {
        auto rtn = stack[stackPointer-1];
-       stack[stackPointer-1] = 0;
+       stack[stackPointer-1] = ZERO;
        stackPointer--;
        return rtn;
     }
@@ -231,7 +232,7 @@ struct Stack {
 
     void drop()
     {
-        stack[stackPointer-1] = 0;
+        stack[stackPointer-1] = ZERO;
         stackPointer--;
     }
 
@@ -290,22 +291,14 @@ struct Stack {
 
 
 
+
 void test() {
 
     auto mainScope = Scope.create();
-<<<<<<< Updated upstream
-    RegisterValue fourtwenty = cast(short) 420; 
-    //Stack stack = Stack();
-    mainScope.mov(R.w0, fourtwenty);
-    writeln(mainScope);
-    
-    
-=======
     auto anotherScope = Scope.create();
     mainScope.mov(R.w0, cast(RegisterValue) cast(short) 420);
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
     writeln(mainScope);
 
->>>>>>> Stashed changes
 }
