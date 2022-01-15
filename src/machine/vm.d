@@ -1,4 +1,4 @@
-module compiler.vm;
+module machine.vm;
 
 import std.stdio;
 import std.stdint;

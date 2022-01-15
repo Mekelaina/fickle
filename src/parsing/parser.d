@@ -1,4 +1,4 @@
-module compiler.parser;
+module parsing.parser;
 
 import std.stdio;
 import std.conv;

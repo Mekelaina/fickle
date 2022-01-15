@@ -1,4 +1,4 @@
-module compiler.tokentype;
+module parsing.tokentype;
 
 enum TokenType: ubyte
 {

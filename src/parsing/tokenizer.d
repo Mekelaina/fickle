@@ -1,4 +1,4 @@
-module compiler.tokenizer;
+module parsing.tokenizer;
 
 import std.algorithm;
 import std.utf;
