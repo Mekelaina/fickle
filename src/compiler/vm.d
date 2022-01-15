@@ -8,7 +8,7 @@ import std.array;
 import std.range : cycle, take;
 import std.format;
 
-const AMT_REGISTERS = 10;
+const AMT_REGISTERS = 12;
 const FFFF = 65_535;
 
 
@@ -17,6 +17,7 @@ alias RegisterValue = SumType!(
    uint16_t,
    double,
    dchar,
+   string,
    bool
 );
 
@@ -26,6 +27,7 @@ enum R {
     w0, w1,
     f0, f1,
     c0, c1,
+    s0, s1,
      x,  y
 }
 
@@ -34,6 +36,7 @@ struct Registers {
     int16_t w0, w1;
     double  f0, f1;
     dchar   c0, c1;
+    string  s0, s1;
     bool     x,  y;
 
 }
@@ -243,7 +246,9 @@ struct Scope {
        res.ptrs[R.f0] = cast(uintptr_t) &res.underlying.f0; 
        res.ptrs[R.f1] = cast(uintptr_t) &res.underlying.f1; 
        res.ptrs[R.c0] = cast(uintptr_t) &res.underlying.c0; 
-       res.ptrs[R.c1] = cast(uintptr_t) &res.underlying.c1; 
+       res.ptrs[R.c1] = cast(uintptr_t) &res.underlying.c1;
+       res.ptrs[R.s0] = cast(uintptr_t) &res.underlying.s0;
+       res.ptrs[R.s1] = cast(uintptr_t) &res.underlying.s1; 
        res.ptrs[R.x ] = cast(uintptr_t) &res.underlying.x;    
        res.ptrs[R.y ] = cast(uintptr_t) &res.underlying.y;    
        return res;
@@ -269,6 +274,10 @@ struct Scope {
             case R.c0, R.c1:
                 alias movc = (dchar c) { *(cast(dchar*) this.ptrs[register]) = c; };
                 val.tryMatch!(movc);
+                break;
+            case R.s0, R.s1:
+                alias movs = (string s) { *(cast(string*) this.ptrs[register]) = s; };
+                val.tryMatch!(movs);
                 break;
             case R.x, R.y:
                 alias movx = (bool x) { *(cast(bool*) this.ptrs[register]) = x; };
@@ -326,6 +335,17 @@ struct Scope {
 
     }
 
+    void bnd(R register, string* ptr)
+    {
+        if (register == R.s0 || register == R.s1)
+        {
+            this.ptrs[register] = cast(uintptr_t) ptr;
+        }
+        else {
+            throw new Exception("invalid bnd, cannot bind non-string register to string ptr"); 
+        }
+    }
+
     void bnd(R register, bool* ptr)
     {
         if (register == R.x || register == R.y)
@@ -351,7 +371,7 @@ void test() {
     //writeln(mainScope);
     
     auto anotherScope = Scope.create();
-    mainScope.mov(R.w0, cast(RegisterValue) cast(short) 420);
+    mainScope.mov(R.s0, cast(RegisterValue) cast(string) "hello");
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
     writeln(mainScope);
