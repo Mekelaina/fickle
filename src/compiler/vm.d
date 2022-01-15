@@ -6,6 +6,7 @@ import std.sumtype;
 import std.conv;
 import std.array;
 import std.range : cycle, take;
+import std.format;
 
 const AMT_REGISTERS = 10;
 const FFFF = 65_535;
@@ -85,20 +86,20 @@ struct Stack {
 
     RegisterValue pop ()
     {
-       auto rtn = stack[stackPointer];
-       stack[stackPointer] = 0;
+       auto rtn = stack[stackPointer-1];
+       stack[stackPointer-1] = 0;
        stackPointer--;
        return rtn;
     }
 
     RegisterValue peek()
     {
-        return stack[stackPointer];
+        return stack[stackPointer-1];
     }
 
     void drop()
     {
-        stack[stackPointer] = 0;
+        stack[stackPointer-1] = 0;
         stackPointer--;
     }
 
@@ -106,20 +107,19 @@ struct Stack {
     {
         if(stackPointer < 1024)
         {
-            auto top = stack[stackPointer];
+            auto top = stack[stackPointer-1];
             stackPointer++;
-            stack[stackPointer] = top;
+            stack[stackPointer-1] = top;
         }
     }
 
     void swap()
     {
-        auto top = stack[stackPointer];
-        stackPointer--;
-        auto second = stack[stackPointer];
-        stack[stackPointer] = top;
-        stackPointer++;
-        stack[stackPointer] = second;
+        auto top = stack[stackPointer-1];
+        auto second = stack[stackPointer-2];
+        //writefln(format("DEBUG: %s, %s", top, second));
+        stack[stackPointer-1] = second;
+        stack[stackPointer-2] = top;
     }
 
     ushort getSize()
@@ -139,13 +139,19 @@ struct Stack {
     void flip()
     {
         RegisterValue[] buffer;
-        int count = 0;
-        for(int i = stackPointer; i > 0; i--)
+        for(int i = stackPointer; i >= 0; i--)
         {
-            buffer[count] = stack[i];
-            count++;
+            buffer ~= stack[i];
+            writeln(stack[i]);
         }
-        stack[0..stackPointer] = buffer[0..stackPointer];
+        //writefln(format("DEBUG: %s", buffer));
+        buffer = buffer[1..$];
+        stack[0..stackPointer] = buffer;
+    }
+
+    string toString() const @safe pure 
+    {
+        return to!(string)(stack[0..stackPointer]);
     }
     
 }
@@ -222,8 +228,9 @@ void test() {
 
     auto mainScope = Scope.create();
     RegisterValue fourtwenty = cast(short) 420; 
+    //Stack stack = Stack();
     mainScope.mov(R.w0, fourtwenty);
     writeln(mainScope);
-
-
+    
+    
 }
