@@ -11,9 +11,10 @@ import std.format;
 const AMT_REGISTERS = 10;
 const FFFF = 65_535;
 
+
 alias RegisterValue = SumType!(
    uint8_t,
-   int16_t,
+   uint16_t,
    double,
    dchar,
    bool
@@ -38,8 +39,15 @@ struct Registers {
 }
 
 struct Ram {
+    //NOTE: all the methods that take ints are just convenience wrappers
+    //that call their ushort counterparts with the appropriate cast
+    //so we dont have to cast each input each time.
     
-    private ubyte[FFFF] ram;
+    //the single value methods wrap the input in an array and pass it
+    //to the array input methods. which check for single values and
+    //and map it to the given range.
+    
+    private ubyte[FFFF] ram = 0;
 
     void clearRam()
     {
@@ -48,19 +56,72 @@ struct Ram {
 
     void insertAt(ushort loc, ubyte value)
     {
-        mapToRange(loc, loc, RegisterValue(value));
+        ram[loc] = value;
+    }
+
+    void insertAt(int loc, int value)
+    in {
+        assert(loc <= 0xFFFF && value <= 0xFF);
+    } do {
+        ram[cast(ushort) loc] = cast(ubyte) value;
     }
 
     void mapToRange(ushort start, ushort end, RegisterValue value)
     in {
         assert((end-start) % value.sizeof == 0);
     } do {
-            ram[start..end] = (cast(ubyte*) &value)[0..value.sizeof];
+        mapToRange(cast(ushort) start, cast(ushort) end, [value]);
+    } 
+
+    void mapToRange(int start, int end, RegisterValue value)
+    in {
+        assert(start <= 0xFFFF && end <= 0xFFFF);
+    } do {
+        mapToRange(cast(ushort) start, cast(ushort) end, value);
+    }
+
+    void mapToRange(ushort start, ushort end, RegisterValue[] values)
+    in {
+        assert((end-start) % values.sizeof == 0);
+    } do {
+        if(values.length == 1){
+            auto t = (cast(ubyte*) &values[0])[0..values[0].sizeof];
+            ram[cast(ushort) start..cast(ushort) end] = t[0];
+        }
+        else {
+            ram[cast(ushort) start..cast(ushort) end] = (cast(ubyte*) &values)[0..values.sizeof];
+        }
+    }
+
+    void mapToRange(int start, int end, RegisterValue[] values)
+    in {
+        assert(start <= 0xFFFF && end <= 0xFFFF);
+    } do {
+        mapToRange(cast(ushort) start, cast(ushort) end, values);
     }
 
     ubyte[] getRange(ushort start, ushort end) return
     {
         return ram[start..end];
+    }
+
+    ubyte[] getRange(int start, int end) return
+    in {
+        assert(start <= 0xFFFF && end <= 0xFFFF);
+    } do{
+        return getRange(cast(ushort) start, cast(ushort) end);
+    }
+
+    ubyte getAt(ushort loc)
+    {
+        return ram[loc];
+    }
+
+    ubyte getAt(int loc)
+    in {
+        assert(loc <= 0xFFFF);
+    } do{
+        return ram[cast(ushort) loc];
     }
 }
 
@@ -68,10 +129,11 @@ struct Stack {
     
     private RegisterValue[1024] stack;
     private ushort stackPointer = 0;
+    private const RegisterValue ZERO = RegisterValue(cast(uint8_t) 0);
 
     void clearStack()
     {
-        stack[0..stackPointer] = RegisterValue(0);
+        stack[0..stackPointer] = ZERO;
         stackPointer = 0;
     }
 
@@ -87,7 +149,7 @@ struct Stack {
     RegisterValue pop ()
     {
        auto rtn = stack[stackPointer-1];
-       stack[stackPointer-1] = 0;
+       stack[stackPointer-1] = ZERO;
        stackPointer--;
        return rtn;
     }
@@ -99,7 +161,7 @@ struct Stack {
 
     void drop()
     {
-        stack[stackPointer-1] = 0;
+        stack[stackPointer-1] = ZERO;
         stackPointer--;
     }
 
@@ -192,28 +254,23 @@ struct Scope {
                  which may not be desired behavior. */
         final switch (register) 
         {
-            case R.b0:
-            case R.b1:
+            case R.b0, R.b1:
                 alias movb = (uint8_t b) { *(cast(uint8_t*) this.ptrs[register]) = b; };
                 val.tryMatch!(movb); 
                 break;
-            case R.w0:
-            case R.w1:
+            case R.w0, R.w1:
                 alias movw = (int16_t w) { *(cast(int16_t*) this.ptrs[register]) = w; };
                 val.tryMatch!(movw);
                 break;
-            case R.f0:
-            case R.f1:
+            case R.f0, R.f1:
                 alias movf = (double f) { *(cast(double*) this.ptrs[register]) = f; };
                 val.tryMatch!(movf);
                 break;
-            case R.c0:
-            case R.c1:
+            case R.c0, R.c1:
                 alias movc = (dchar c) { *(cast(dchar*) this.ptrs[register]) = c; };
                 val.tryMatch!(movc);
                 break;
-            case R.x:
-            case R.y:
+            case R.x, R.y:
                 alias movx = (bool x) { *(cast(bool*) this.ptrs[register]) = x; };
                 val.tryMatch!(movx);
                 break;
@@ -229,8 +286,14 @@ void test() {
     auto mainScope = Scope.create();
     RegisterValue fourtwenty = cast(short) 420; 
     //Stack stack = Stack();
+    Ram ram = Ram();
     mainScope.mov(R.w0, fourtwenty);
-    writeln(mainScope);
-    
-    
+    //writeln(mainScope);
+    writeln(ram.getAt(0x4269));
+    ram.insertAt( 0x4269, 0xFF);
+    writeln(ram.getAt(0x4269));
+    ram.clearRam();
+    writeln(ram.getRange(0x4261, 0x4269));
+    ram.mapToRange(0x4261, 0x4269, [RegisterValue(0xFF)]);
+    writeln(ram.getRange(0x4261, 0x4269));
 }
