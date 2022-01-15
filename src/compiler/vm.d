@@ -21,7 +21,6 @@ alias RegisterValue = SumType!(
    bool
 );
 
-
 enum R {
     b0, b1,
     w0, w1,
@@ -222,6 +221,7 @@ struct Stack {
 }
 
 
+
 struct Scope {
     
     /* Layout of ptrs should look something like this: 
@@ -286,6 +286,19 @@ struct Scope {
  
         } 
     }
+
+    void mov(R register, int address, Ram ram)
+    in {
+        assert(address <= FFFF);
+    } do {
+        mov(register, cast(ushort) address, ram);
+    }
+
+    void mov(R register, ushort address, Ram ram)
+    {
+        auto val = ram.ram[address];
+        mov(register, RegisterValue(val));
+    } 
     
     void bnd(R register, uint8_t* ptr)
     {
@@ -365,8 +378,10 @@ struct Scope {
 void test() {
 
     auto mainScope = Scope.create();
+    Ram ram = Ram();
+    Stack stack = Stack();
+
     RegisterValue fourtwenty = cast(short) 420; 
-    //Stack stack = Stack();
     mainScope.mov(R.w0, fourtwenty);
     //writeln(mainScope);
     
@@ -374,6 +389,11 @@ void test() {
     mainScope.mov(R.s0, cast(RegisterValue) cast(string) "hello");
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
+    
+    //writeln(mainScope);
+
+    ram.insertAt(0x4269, 0xFF);
+    mainScope.mov(R.b0, 0x4269, ram);
     writeln(mainScope);
 
     /* Ram ram = Ram();
