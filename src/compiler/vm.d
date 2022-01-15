@@ -63,7 +63,7 @@ struct Ram {
     in {
         assert(loc <= 0xFFFF && value <= 0xFF);
     } do {
-        ram[cast(ushort) loc] = cast(ubyte) value;
+        insertAt(cast(ushort) loc, cast(ushort) value);
     }
 
     void mapToRange(ushort start, ushort end, RegisterValue value)
