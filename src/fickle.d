@@ -1,3 +1,5 @@
+module fickle;
+
 import std.stdio;
 import std.format;
 import std.getopt;
