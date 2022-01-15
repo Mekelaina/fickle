@@ -63,7 +63,7 @@ struct Ram {
     in {
         assert(loc <= 0xFFFF && value <= 0xFF);
     } do {
-        insertAt(cast(ushort) loc, cast(ushort) value);
+        insertAt(cast(ushort) loc, cast(ubyte) value);
     }
 
     void mapToRange(ushort start, ushort end, RegisterValue value)
@@ -347,20 +347,26 @@ void test() {
     auto mainScope = Scope.create();
     RegisterValue fourtwenty = cast(short) 420; 
     //Stack stack = Stack();
-    Ram ram = Ram();
     mainScope.mov(R.w0, fourtwenty);
     //writeln(mainScope);
-    writeln(ram.getAt(0x4269));
-    ram.insertAt( 0x4269, 0xFF);
-    writeln(ram.getAt(0x4269));
-    ram.clearRam();
-    writeln(ram.getRange(0x4261, 0x4269));
-    ram.mapToRange(0x4261, 0x4269, [RegisterValue(0xFF)]);
-    writeln(ram.getRange(0x4261, 0x4269));
+    
     auto anotherScope = Scope.create();
     mainScope.mov(R.w0, cast(RegisterValue) cast(short) 420);
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
     writeln(mainScope);
+
+    /* Ram ram = Ram();
+    writeln(ram.getAt(0x4269));
+    ram.insertAt(0x4269, 0xFF);
+    auto t = ram.getAt(0x4269); 
+    writeln(t);
+    ram.clearRam();
+    writeln(ram.getRange(0x4261, 0x4269));
+    ram.mapToRange(0x4261, 0x4269, [RegisterValue(0xFF)]);
+    ram.insertAt(0x4266, 0x00);
+    writeln(ram.getRange(0x4261, 0x4269)); */
+
+    
 
 }
