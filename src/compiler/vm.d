@@ -57,7 +57,7 @@ struct Ram {
             ram[start..end] = (cast(ubyte*) &value)[0..value.sizeof];
     }
 
-    ubyte[] getRange(ushort start, ushort end)
+    ubyte[] getRange(ushort start, ushort end) return
     {
         return ram[start..end];
     }
@@ -91,7 +91,7 @@ struct Stack {
        return rtn;
     }
 
-    RegisterValue peak()
+    RegisterValue peek()
     {
         return stack[stackPointer];
     }
@@ -131,8 +131,8 @@ struct Stack {
     in {
         assert(cycles < elements);
     } do {
-        RegisterValue buffer = stack[(stackPointer-elements)..(stackPointer)];
-        RegisterValue temp = cycle(buffer).take(elements*2);
+        RegisterValue[] buffer = stack[(stackPointer-elements)..(stackPointer)];
+        RegisterValue[] temp = array(cycle(buffer).take(elements*2));
         stack[stackPointer-elements..stackPointer] = temp[cycles..elements];
     }
 
@@ -150,76 +150,69 @@ struct Stack {
     
 }
 
+
 struct Scope {
     
-    /*
-    uint8_t* b0, b1;
-    int16_t* w0, w1;
-    double*  f0, f1;
-    dchar*   c0, c1;
-    bool*     x,  y;
+    /* Layout of ptrs should look something like this: 
+        uint8_t* b0, b1
+        int16_t* w0, w1
+        double*  f0, f1
+        dchar*   c0, c1
+        bool*     x,  y
     */
     uintptr_t[AMT_REGISTERS] ptrs; 
     Registers underlying; 
-    Ram ram = Ram();
-    Stack stack = Stack();
+    /* NOTE: i removed ram and stack from here because
+       ram and stack aren't scoped, they're global */
 
     static Scope create() {
        auto res = Scope();
        res.underlying = Registers();
-       this.ptrs[R.b0] = &res.underlying.b0; 
-       this.ptrs[R.b1] = &res.underlying.b1; 
-       this.ptrs[R.w0] = &res.underlying.w0; 
-       this.ptrs[R.w1] = &res.underlying.w1; 
-       this.ptrs[R.f0] = &res.underlying.f0; 
-       this.ptrs[R.f1] = &res.underlying.f1; 
-       this.ptrs[R.c0] = &res.underlying.c0; 
-       this.ptrs[R.c1] = &res.underlying.c1; 
-       this.ptrs[R.x ] = &res.underlying.x;    
-       this.ptrs[R.y ] = &res.underlying.y;    
+       res.ptrs[R.b0] = cast(uintptr_t) &res.underlying.b0; 
+       res.ptrs[R.b1] = cast(uintptr_t) &res.underlying.b1; 
+       res.ptrs[R.w0] = cast(uintptr_t) &res.underlying.w0; 
+       res.ptrs[R.w1] = cast(uintptr_t) &res.underlying.w1; 
+       res.ptrs[R.f0] = cast(uintptr_t) &res.underlying.f0; 
+       res.ptrs[R.f1] = cast(uintptr_t) &res.underlying.f1; 
+       res.ptrs[R.c0] = cast(uintptr_t) &res.underlying.c0; 
+       res.ptrs[R.c1] = cast(uintptr_t) &res.underlying.c1; 
+       res.ptrs[R.x ] = cast(uintptr_t) &res.underlying.x;    
+       res.ptrs[R.y ] = cast(uintptr_t) &res.underlying.y;    
        return res;
     }
     void mov(R register, RegisterValue val)
     {
+        /* NOTE: this raises an exception on an invalid mov, 
+                 which may not be desired behavior. */
         final switch (register) 
         {
             case R.b0:
             case R.b1:
-                val.match!(
-                    (uint8_t b) => { *this.ptrs[register] = b; },
-                    _ => { writeln("Error: invalid mov"); exit(1); }
-                );
+                alias movb = (uint8_t b) { *(cast(uint8_t*) this.ptrs[register]) = b; };
+                val.tryMatch!(movb); 
                 break;
             case R.w0:
             case R.w1:
-                val.match!(
-                    (int16_t w) => { *this.ptrs[register] = w; },
-                    _ => { writeln("Error: invalid mov"); exit(1); }
-                );
+                alias movw = (int16_t w) { *(cast(int16_t*) this.ptrs[register]) = w; };
+                val.tryMatch!(movw);
                 break;
             case R.f0:
             case R.f1:
-                val.match!(
-                    (double f) => { *this.ptrs[register] = f; },
-                    _ => { writeln("Error: invalid mov"); exit(1); }
-                );
+                alias movf = (double f) { *(cast(double*) this.ptrs[register]) = f; };
+                val.tryMatch!(movf);
                 break;
             case R.c0:
             case R.c1:
-                val.match!(
-                    (dchar c) => { *this.ptrs[register] = c; },
-                    _ => { writeln("Error: invalid mov"); exit(1); }
-                );
+                alias movc = (dchar c) { *(cast(dchar*) this.ptrs[register]) = c; };
+                val.tryMatch!(movc);
                 break;
             case R.x:
             case R.y:
-                val.match!(
-                    (bool x) => { *this.ptrs[register] = x; },
-                    _ => { writeln("Error: invalid mov"); exit(1); }
-                );
+                alias movx = (bool x) { *(cast(bool*) this.ptrs[register]) = x; };
+                val.tryMatch!(movx);
                 break;
  
-       } 
+        } 
     }
     
 }
@@ -228,7 +221,8 @@ struct Scope {
 void test() {
 
     auto mainScope = Scope.create();
-    mainScope.mov(R.w0, 420);
+    RegisterValue fourtwenty = cast(short) 420; 
+    mainScope.mov(R.w0, fourtwenty);
     writeln(mainScope);
 
 
