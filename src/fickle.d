@@ -90,8 +90,9 @@ void main(string[] args)
     //writeln(tokens);
     Compiler compiler = Compiler();
     compiler.addScript(tokens);
-    compiler.compile();
-    writefln(format("%(%02X%)",compiler.toBytes(Opcode.PRT_STRREG)));
+    auto program = compiler.compile();
+    machine.executeProgram(program);
+    //writefln(format("%(%02X%)",program));
     
 
     //machine.test();

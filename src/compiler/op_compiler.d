@@ -83,7 +83,7 @@ struct Compiler
         scripts ~= _script;
     }
 
-    void compile()
+    ubyte[] compile()
     {
         auto script = scripts[0];
         program ~= toBytes(Opcode.BOUND);
@@ -133,7 +133,7 @@ struct Compiler
                     currentLiteral = Literal.STRING;
                     currentValue = token.value.text[1..$-1];
                 break;
-                case TokenType.COMMA:
+                case TokenType.COMMA, TokenType.COMMENT:
                     continue;
                 break;
                 default:
@@ -176,6 +176,7 @@ struct Compiler
                                     program ~= toBytes(Opcode.MOV_STRREG_LIT);
                                     program ~= cast(ubyte) 0;
                                     program ~= currentValue;
+                                    program ~= cast(ubyte) 0x00;
                                     currentIntrinsic = Intrinsics.NULL;
                                     currentRegister = Register.NULL;
                                     currentLiteral = Literal.NULL;
@@ -246,7 +247,7 @@ struct Compiler
         }
         program ~= toBytes(Opcode.BOUND);
 
-        writefln(format("%(%02X%)", program));
+        return program;
     }
 
     ubyte[] toBytes(ushort toCon)

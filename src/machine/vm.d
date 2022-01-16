@@ -5,8 +5,12 @@ import std.stdint;
 import std.sumtype;
 import std.conv;
 import std.array;
+import std.range.primitives;
 import std.range : cycle, take;
 import std.format;
+
+import compiler.opcode;
+
 
 const AMT_REGISTERS = 12;
 const FFFF = 0xFFFF;
@@ -289,6 +293,17 @@ struct Scope {
         } 
     }
 
+    void prt(R register)
+    {
+        //writeln(register);
+        writeln(*(cast(string*) this.ptrs[register]));
+    }
+
+    void prt(string s)
+    {
+        writeln(s);
+    }
+
     void mov(R register, int address, Ram ram)
     in {
         assert(address <= FFFF);
@@ -376,6 +391,77 @@ struct Scope {
  
 }
 
+ubyte[] toBytes(ushort toCon)
+{
+    return [cast(ubyte) toCon, cast(ubyte) (cast(ushort) (toCon >> 8))];
+}
+
+ushort toShort(ubyte[] toCon)
+{
+    ushort ret = cast(ushort) toCon[1];
+    //writeln(ret);
+    ret = cast(ushort) (ret << 8);
+    ret += toCon[0];
+    return ret;
+}
+
+void executeProgram(ubyte[] program)
+{
+    auto mainScope = Scope.create();
+    Ram ram = Ram();
+    Stack stack = Stack();
+    int pc = 0;
+    bool run = true;
+    ushort currentOp;
+    //writeln(program.length);
+    do
+    {
+        currentOp = toShort([program[pc], program[++pc]]);
+        pc++;
+        //writefln(format("%x", currentOp));
+        switch(currentOp)
+        {
+            case Opcode.BOUND:
+                
+                if(pc == program.length - 1)
+                {
+                    run = false;
+                }
+                continue;
+            break;
+            case Opcode.MAIN_START:
+                continue;
+            break;
+            case Opcode.MAIN_END:
+                continue;
+            break;
+            case Opcode.MOV_STRREG_LIT:
+                //writeln(currentOp);
+                auto reg = program[pc++];
+                string value;
+                ubyte current;
+                do 
+                {
+                    current = program[pc++];
+                    value ~= current;
+                } while(current != 0);
+                //writeln(reg);
+                //writeln("a");
+                mainScope.mov(reg == 0 ? R.s0 : R.s1, RegisterValue(value));
+                //pc++;
+                //writeln(mainScope);
+            break;
+            case Opcode.PRT_STRREG:
+                auto reg = program[pc++];
+                //writefln(format("DEBUG: %s", reg));
+                mainScope.prt(reg == 0 ? R.s0 : R.s1);
+            break;
+            default:
+            break;
+        }
+        //writeln(pc);
+    } while(pc+1 < program.length);
+}
 
 void test() {
 
