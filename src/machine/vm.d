@@ -197,7 +197,9 @@ struct Stack {
     } do {
         RegisterValue[] buffer = stack[(stackPointer-elements)..(stackPointer)];
         RegisterValue[] temp = array(cycle(buffer).take(elements*2));
-        stack[stackPointer-elements..stackPointer] = temp[cycles..elements];
+        /* writefln(format("%s, %s, %s, %s, %s, %s", stackPointer-elements, stackPointer, 
+            cycles-1, elements, temp, temp[1..4])); */
+        stack[(stackPointer-elements)..stackPointer] = temp[cycles-1..elements+1];
     }
 
     void flip()
@@ -394,7 +396,14 @@ void test() {
 
     ram.insertAt(0x4269, 0xFF);
     mainScope.mov(R.b0, 0x4269, ram);
-    writeln(mainScope);
+
+    stack.push(cast(RegisterValue) cast(ubyte) 0);
+    stack.push(cast(RegisterValue) cast(ubyte) 1);
+    stack.push(cast(RegisterValue) cast(ubyte) 2);
+    writeln(stack);
+    stack.cycleStack(cast(ushort) 3, 2);
+    writeln(stack);
+    //writeln(mainScope);
 
     /* Ram ram = Ram();
     writeln(ram.getAt(0x4269));
