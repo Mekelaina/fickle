@@ -1,11 +1,11 @@
 module fickle;
 
-import std.stdio;
+import std.stdio: writefln, writeln;
 import std.format;
 import std.getopt;
 import std.array;
-import std.stdio;
 import core.stdc.stdlib;
+import std.file;
 
 import compiler;
 import parsing;
@@ -17,10 +17,11 @@ struct CLInput
     string[] filesIn;    /* no default, required */
     string fileOut;      /* Default "foo.fkl */
     bool runPostCompile; /* Default false */
+    bool isBinary;       /* Default false*/
 
     static CLInput defaults()
     {
-        return CLInput([], "foo.fkl", false);
+        return CLInput([], "", false, false);
     }
 
     static CLInput parseCommands(string[] args) 
@@ -84,14 +85,43 @@ void main(string[] args)
 {    
     auto clin = CLInput.parseCommands(args);
     //writeln(clin);
-    Script[] scripts = parseFiles(clin.filesIn);
-    //writeln(scripts);
-    Token[] tokens = tokenize(scripts[0]);
-    //writeln(tokens);
-    Compiler compiler = Compiler();
-    compiler.addScript(tokens);
-    auto program = compiler.compile();
-    machine.executeProgram(program);
+    ubyte[] program;
+    //writeln(clin);
+    if(clin.isBinary)
+    {
+        program = cast(ubyte[])read(clin.filesIn[0]);
+        //program = (cast(ubyte*) &i)[0..i.sizeof];
+    }
+    else 
+    {
+        Script[] scripts = parseFiles(clin.filesIn);
+        //writeln(scripts);
+        Token[] tokens = tokenize(scripts[0]);
+        //writeln(tokens);
+        Compiler compiler = Compiler();
+        compiler.addScript(tokens);
+        program = compiler.compile();
+        //writeln("loop zoop");
+    }
+    
+    if(clin.fileOut != "")
+    {
+        string name = clin.fileOut ~= ".fkl";
+        if(exists(name))
+        {
+            write(name, program);
+        }
+        else
+        {
+            append(name, program);
+        }
+    }
+    
+    if(clin.runPostCompile)
+    {
+        writefln(format("%(%02X%)", program));
+        machine.executeProgram(program);
+    }
     //writefln(format("%(%02X%)",program));
     
 
@@ -112,7 +142,7 @@ void main(string[] args)
  * fickle source, should we reject to compile it?
  * maybe remove this? maybe add a flag to disable it?
  */
-void validateInput(CLInput clin)
+void validateInput(ref CLInput clin)
 in {
      /* there is a bug in CLInput.parseCommands
         if clin.filesIn is empty. */
@@ -125,12 +155,24 @@ in {
     {
         string buf = split(f, "\\")[$-1];
         string ext = split(buf, ".")[1];
-        if (ext != SOURCE_FILE) 
+        //writeln(ext);
+        if (ext == BINARY_FILE)
+        {
+            clin.isBinary = true;
+            clin.runPostCompile = true;
+            break;
+        }
+        else if (ext == SOURCE_FILE)
+        {
+            break;
+        }
+        else
         {
             invalidInFiles = true;
             break;
         }
     }
+
     if (invalidInFiles)  
     {
         writeln("Error: Invalid input file(s): please provide a `.fic` fickle source file.");
