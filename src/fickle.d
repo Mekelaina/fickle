@@ -5,6 +5,7 @@ import std.format;
 import std.getopt;
 import std.array;
 import core.stdc.stdlib;
+import std.algorithm.searching;
 import std.file;
 
 import compiler;
@@ -106,10 +107,18 @@ void main(string[] args)
     
     if(clin.fileOut != "")
     {
-        string buf = split(f, "\\")[$-1];
-        string ext = split(buf, ".")[1];
+        string buf = split(clin.fileOut, "\\")[$-1];
+        string ext;
+        if(canFind(buf, "."))
+        {
+            ext = split(buf, ".")[1];
+        }
+        else
+        {
+            ext = buf;
+        }
 
-        string name = (ext == BINARY_FILE) ? clin.fileOut : clin.fileOut ~= ".fkl";
+        string name = (ext == BINARY_FILE) ? clin.fileOut : (clin.fileOut ~= ".fkl");
         if(exists(name))
         {
             write(name, program);

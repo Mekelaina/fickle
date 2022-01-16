@@ -423,7 +423,7 @@ void executeProgram(ubyte[] program)
         {
             case Opcode.BOUND:
                 
-                if(pc == program.length - 1)
+                if(pc == (cast(int) program.length - 1))
                 {
                     run = false;
                 }
