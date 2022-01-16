@@ -4,10 +4,13 @@ import std.stdio;
 import std.array;
 import std.format;
 import std.conv;
+import std.algorithm.searching;
+import std.bitmanip;
 
 import parsing.tokenizer;
 import parsing.tokentype;
 import machine.vm;
+import util.convert;
 import compiler;
 
 enum Intrinsics : string
@@ -81,6 +84,15 @@ struct Compiler
     void addScript(Script _script)
     {
         scripts ~= _script;
+    }
+
+    void test()
+    {
+        double d = 65.43;
+        auto b = toBytes(d);
+        double nd = toDouble(b);
+        writeln(nd);
+        //writefln(format("%(%02X%)", toBytes(d)));
     }
 
     ubyte[] compile()
@@ -222,6 +234,155 @@ struct Compiler
                     final switch(currentRegister)
                     {
                         case Register.NULL:
+                            
+                            if(currentValue != "")
+                            {
+                                //writeln(currentValue);
+                                switch(currentValue[0])
+                                {
+                                    case '%':
+                                        if(canFind(currentValue,"."))
+                                        {
+                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
+                                            program ~= toBytes(parse!double(currentValue));
+                                            currentIntrinsic = Intrinsics.NULL;
+                                            currentValue = "";
+                                        } 
+                                        else if (canFind(currentValue, "-") && !canFind(currentValue, "."))
+                                        {
+                                            int temp = parse!int(currentValue);
+                                            if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            //TODO: error report
+                                        } 
+                                        else
+                                        {
+                                            int temp = parse!int(currentValue);
+                                            if(temp >= 0 && temp >= ubyte.min && temp <= ubyte.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_BYTELIT);
+                                                program ~= toBytes(parse!byte(currentValue));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            } 
+                                            else if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            else 
+                                            {
+                                                //TODO: error report
+                                            }
+                                        } 
+                                    break;
+                                    case '$':
+                                        if(canFind(currentValue,"."))
+                                        {
+                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
+                                            int buf = parse!int(currentValue);
+                                            program ~= toBytes(to!double(buf));
+                                            currentIntrinsic = Intrinsics.NULL;
+                                            currentValue = "";
+                                        } 
+                                        else if (canFind(currentValue, "-") && !canFind(currentValue, "."))
+                                        {
+                                            int temp = parse!int(currentValue, 16);
+                                            if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue, 16));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            //TODO: error report
+                                        } 
+                                        else
+                                        {
+                                            int temp = parse!int(currentValue, 16);
+                                            if(temp >= 0 && temp >= ubyte.min && temp <= ubyte.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_BYTELIT);
+                                                program ~= toBytes(parse!byte(currentValue, 16));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            } 
+                                            else if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue, 16));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            else 
+                                            {
+                                                //TODO: error report
+                                            }
+                                        } 
+                                    break;
+                                    case '&':
+                                        if(canFind(currentValue,"."))
+                                        {
+                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
+                                            double buf = parse!double(currentValue);
+                                            program ~= toBytes(buf);
+                                            currentIntrinsic = Intrinsics.NULL;
+                                            currentValue = "";
+                                        } 
+                                        else if (canFind(currentValue, "-") && !canFind(currentValue, "."))
+                                        {
+                                            int temp = parse!int(currentValue);
+                                            if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue, 2));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            //TODO: error report
+                                        } 
+                                        else
+                                        {
+                                            int temp = parse!int(currentValue);
+                                            if(temp >= 0 && temp >= ubyte.min && temp <= ubyte.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_BYTELIT);
+                                                program ~= toBytes(parse!byte(currentValue, 2));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            } 
+                                            else if(temp >= short.min && temp <= short.max)
+                                            {
+                                                program ~= toBytes(Opcode.PRT_WORDLIT);
+                                                program ~= toBytes(parse!short(currentValue, 2));
+                                                currentIntrinsic = Intrinsics.NULL;
+                                                currentValue = "";
+                                            }
+                                            else 
+                                            {
+                                                //TODO: error report
+                                            }
+                                        } 
+                                    break;
+                                    case '\"':
+                                        
+                                    break;
+                                    default:
+                                        program ~= toBytes(Opcode.PRT_STRLIT);
+                                        program ~= currentValue;
+                                        program ~= cast(ubyte) 0;
+                                        currentValue = "";
+                                        currentIntrinsic = Intrinsics.NULL;
+                                    break;
+                                }
+                            }
                         break;
                         case Register.s0, Register.s1:
                             program ~= toBytes(Opcode.PRT_STRREG);
@@ -250,17 +411,5 @@ struct Compiler
         return program;
     }
 
-    ubyte[] toBytes(ushort toCon)
-    {
-        return [cast(ubyte) toCon, cast(ubyte) (cast(ushort) (toCon >> 8))];
-    }
-
-    ushort toShort(ubyte[] toCon)
-    {
-        ushort ret = cast(ushort) toCon[1];
-        //writeln(ret);
-        ret = cast(ushort) (ret << 8);
-        ret += toCon[0];
-        return ret;
-    }
+    
 }

@@ -10,6 +10,7 @@ import std.range : cycle, take;
 import std.format;
 
 import compiler.opcode;
+import util.convert;
 
 
 const AMT_REGISTERS = 12;
@@ -391,20 +392,6 @@ struct Scope {
  
 }
 
-ubyte[] toBytes(ushort toCon)
-{
-    return [cast(ubyte) toCon, cast(ubyte) (cast(ushort) (toCon >> 8))];
-}
-
-ushort toShort(ubyte[] toCon)
-{
-    ushort ret = cast(ushort) toCon[1];
-    //writeln(ret);
-    ret = cast(ushort) (ret << 8);
-    ret += toCon[0];
-    return ret;
-}
-
 void executeProgram(ubyte[] program)
 {
     auto mainScope = Scope.create();
@@ -455,6 +442,16 @@ void executeProgram(ubyte[] program)
                 auto reg = program[pc++];
                 //writefln(format("DEBUG: %s", reg));
                 mainScope.prt(reg == 0 ? R.s0 : R.s1);
+            break;
+            case Opcode.PRT_STRLIT:
+                string value;
+                ubyte current;
+                do 
+                {
+                    current = program[pc++];
+                    value ~= current;
+                } while(current != 0);
+                mainScope.prt(value);
             break;
             default:
             break;

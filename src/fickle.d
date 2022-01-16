@@ -8,6 +8,7 @@ import core.stdc.stdlib;
 import std.algorithm.searching;
 import std.file;
 
+
 import compiler;
 import parsing;
 import machine;
@@ -102,6 +103,8 @@ void main(string[] args)
         Compiler compiler = Compiler();
         compiler.addScript(tokens);
         program = compiler.compile();
+        //writefln(format("%(%02X%)", program));
+        //compiler.test();
         //writeln("loop zoop");
     }
     
@@ -131,13 +134,9 @@ void main(string[] args)
     
     if(clin.runPostCompile)
     {
-        writefln(format("%(%02X%)", program));
+        //writefln(format("%(%02X%)", program));
         machine.executeProgram(program);
     }
-    //writefln(format("%(%02X%)",program));
-    
-
-    //machine.test();
 }
 
 
