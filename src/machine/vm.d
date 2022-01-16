@@ -14,7 +14,7 @@ const FFFF = 65_535;
 
 alias RegisterValue = SumType!(
    uint8_t,
-   uint16_t,
+   int16_t,
    double,
    dchar,
    string,
