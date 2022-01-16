@@ -106,7 +106,10 @@ void main(string[] args)
     
     if(clin.fileOut != "")
     {
-        string name = clin.fileOut ~= ".fkl";
+        string buf = split(f, "\\")[$-1];
+        string ext = split(buf, ".")[1];
+
+        string name = (ext == BINARY_FILE) ? clin.fileOut : clin.fileOut ~= ".fkl";
         if(exists(name))
         {
             write(name, program);
