@@ -4,11 +4,13 @@ import std.stdio;
 import std.format;
 import std.getopt;
 import std.array;
+import std.stdio;
+import core.stdc.stdlib;
+
 import compiler;
 import parsing;
 import machine;
-import std.stdio;
-import core.stdc.stdlib;
+
 
 struct CLInput
 {
@@ -80,14 +82,19 @@ const string BINARY_FILE = "fkl";
 
 void main(string[] args) 
 {    
-    /* auto clin = CLInput.parseCommands(args);
-    writeln(clin);
+    auto clin = CLInput.parseCommands(args);
+    //writeln(clin);
     Script[] scripts = parseFiles(clin.filesIn);
     //writeln(scripts);
     Token[] tokens = tokenize(scripts[0]);
-    writeln(tokens); */
+    //writeln(tokens);
+    Compiler compiler = Compiler();
+    compiler.addScript(tokens);
+    compiler.compile();
+    writefln(format("%(%02X%)",compiler.toBytes(Opcode.PRT_STRREG)));
+    
 
-    machine.test();
+    //machine.test();
 }
 
 
