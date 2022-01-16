@@ -9,7 +9,7 @@ import std.range : cycle, take;
 import std.format;
 
 const AMT_REGISTERS = 12;
-const FFFF = 65_535;
+const FFFF = 0xFFFF;
 
 
 alias RegisterValue = SumType!(
