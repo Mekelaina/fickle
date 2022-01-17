@@ -42,7 +42,7 @@ ubyte[] toBytes(double toCon)
 double toDouble(ubyte[] toCon)
 {
     ubyte[] r;
-    for(int i = toCon.length-1; i >= 0; i--)
+    for(size_t i = toCon.length - 1; i >= 0; i--)
     {
         r ~= toCon[i];
         //writeln(r);
