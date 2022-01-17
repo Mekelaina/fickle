@@ -16,48 +16,41 @@ ubyte[] toBytes(ushort toCon)
 {
     //bool t = isSigned!(toCon);
     //writefln(format("%s, %s: %s", toCon.stringof, toCon, t));
-    return [cast(ubyte) toCon, cast(ubyte) (cast(ushort) (toCon >> 8))];
+    return [cast(ubyte) (cast(short) (toCon >> 8)), cast(ubyte) toCon];
 }
 
 ubyte[] toBytes(short toCon, int a)
 {
-    return [cast(ubyte) toCon, cast(ubyte) (cast(short) (toCon >> 8))];
+    return [cast(ubyte) (cast(short) (toCon >> 8)), cast(ubyte) toCon];
 }
 
 ubyte[] toBytes(double toCon)
 {
     DoubleConv test = DoubleConv(toCon);
     ubyte[8] t = test.b;
-    ubyte[] r;
-    int c = 0;
-    //writefln(format("%(%02X%)", t));
-    for(int i = t.length-1; i >= 0; i--)
-    {
-        r ~= t[i];
-        //writeln(r);
-    }
-    return r;
+    
+    return t.dup;
 }
 
 double toDouble(ubyte[] toCon)
 {
-    ubyte[] r;
-    for(int i = toCon.length-1; i >= 0; i--)
-    {
-        r ~= toCon[i];
-        //writeln(r);
-    }
-    writefln(format("%s", r.length));
     //ubyte[8] x = r[0..$-1];
-    double rtn = *cast(double*)r.ptr;
+    double rtn = *cast(double*)toCon.ptr;
     return rtn;
 }
 
 ushort toShort(ubyte[] toCon)
 {
-    ushort ret = cast(ushort) toCon[1];
+    ushort ret = toCon[0];
+    ret = cast(ushort) toCon[1];
     //writeln(ret);
     ret = cast(ushort) (ret << 8);
-    ret += toCon[0];
+
     return ret;
+}
+
+pragma(inline):
+bool XOR(bool a, bool b) @nogc @safe pure nothrow
+{
+    return ((a || b) && !(a && b));
 }

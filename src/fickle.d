@@ -99,11 +99,11 @@ void main(string[] args)
         Script[] scripts = parseFiles(clin.filesIn);
         //writeln(scripts);
         Token[] tokens = tokenize(scripts[0]);
-        //writeln(tokens);
+        writeln(tokens);
         Compiler compiler = Compiler();
         compiler.addScript(tokens);
         program = compiler.compile();
-        //writefln(format("%(%02X%)", program));
+        writefln(format("%(%02X%)", program));
         //compiler.test();
         //writeln("loop zoop");
     }

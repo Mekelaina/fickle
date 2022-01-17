@@ -6,6 +6,7 @@ import std.format;
 import std.typecons;
 import std.algorithm;
 import std.array;
+import std.ascii;
 
 import parsing.tokentype;
 
@@ -135,11 +136,11 @@ struct Script
     {
         string[] buffer;
 
-        foreach (line; File(fileName).byLine)
+        foreach (line; File(fileName, "r").byLine)
         {
             buffer ~= line.to!string;
         }
-
+        
         return buffer;
     }
 }

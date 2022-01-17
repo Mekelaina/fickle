@@ -6,11 +6,14 @@ import std.uni;
 import std.stdio;
 import std.conv;
 import std.stdint;
+import std.format;
+import std.string;
 
 import core.stdc.stdlib; 
 
 import parsing.tokentype;
 import parsing.parser;
+import util.convert;
 
 const string MAIN_START = "fic";
 const string MAIN_END = "kle";
@@ -58,6 +61,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
 {
   bool escapeSequence = false;
   bool inStringLiteral = false;
+  bool inNumLiteral = false;
   bool inComment = false;
   bool inCharLiteral;
   Quote[] acc = [];
@@ -145,11 +149,33 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
         writeln("      closing single quote.");
         exit(1); 
       }
+    }
+    else if(inNumLiteral)
+    {
+      if(part.length==1)
+      {
+        branchesExecuted++;
+      }
+      else if(part.length > 1)
+      {
+        branchesExecuted++;
+        
+      }
+      else if(part.length > 1 && isWhite(c))
+      {
+        branchesExecuted++;
+        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+      }
     } 
     else if (inComment)
     {
       branchesExecuted++;
       /* character is fine, just add it to `part` */
+    }
+    else if(c == '%' || c == '$' || c == '&')
+    {
+      branchesExecuted++;
+      inNumLiteral = true;
     }
     else if (c == ';')
     {
@@ -284,17 +310,58 @@ void testSplitByTokenBoundaries() {
 }
 
 
-bool isWordLiteral(string s) 
+bool isNumLiteral(string s) 
 {
-    try
+  //s = s[1..$-2];
+  if(s[0] == '%' || s[0] == '$' || s[0] == '&')
+  {
+    writeln(s);
+    auto x = s[1..$-1];
+    switch(s[0])
     {
-        s.parse!int16_t();
-        return true;
-    } 
-    catch (ConvException e)
-    {
-        return false;
+      
+      case '%':
+        try
+        {
+            parse!int(x);
+            return true;
+        } 
+        catch (ConvException e)
+        {
+            return false;
+        }
+      break;
+      case '$':
+        try
+        {
+            parse!int(x, 16);
+            return true;
+        } 
+        catch (ConvException e)
+        {
+            return false;
+        }
+      break;
+      case '&':
+        try
+        {
+            parse!int(x, 2);
+            return true;
+        } 
+        catch (ConvException e)
+        {
+            return false;
+        }
+      break;
+      default:
+      return false;
+      break;
     }
+  }
+  else
+  {
+    return false;
+  }
 }
 
 int isRegister(string s)
@@ -333,6 +400,7 @@ int isRegister(string s)
     
 }
 
+
 bool isStringLiteral(string s)
 {
     if(s[0] == '\"' && s[$-1] == '\"')
@@ -347,6 +415,195 @@ bool isStringLiteral(string s)
     }
 }
 
+int getNumType(string s)
+{
+  auto x = s[1..$];
+  dstring dx = x.toUTF32;
+  auto buf = 0;
+  if(s[0] == '%')
+  {
+    try{
+      buf = parse!int(dx);
+    } catch(ConvException e){
+
+    }
+  }
+  else if(s[0] == '$')
+  {
+    try {
+      buf = parse!int(dx, 16);
+    } catch(ConvException e) {
+
+    }
+  }
+  else 
+  {
+    try{
+      buf = parse!int(dx, 2);
+    } catch(ConvException e){
+
+    }
+  }
+  bool hasDecimal = canFind(x, '.');
+  bool isNegative = canFind(x, '-');
+  bool isByteRange = (buf >= ubyte.min && buf <= ubyte.max) ? true : false;
+  writeln(x.length);
+  bool isPointerRange =  (x.length == 4);
+  writefln(format("%s, %s, %s, %s", hasDecimal, isNegative, isByteRange, isPointerRange));
+  
+  switch(s[0])
+  {
+    case '%':
+      if(hasDecimal)
+      {
+        try
+        {
+          parse!double(x);  
+          return 3;
+        } 
+        catch (ConvException e)
+        {
+            return -3;
+        }
+      }
+      else if(isNegative || (!hasDecimal && !isByteRange))
+      {
+        try
+        {
+          parse!short(x);
+          return 2;
+        }
+        catch (ConvException e)
+        {
+          return -2;
+        }
+      }
+      else
+      {
+        try
+        {
+          auto t = parse!ubyte(x);
+          return 1;
+        }
+        catch (ConvException e)
+        {
+          writeln(e);
+          return -1;
+        }
+      }
+    break;
+    case '$':
+      if(hasDecimal)
+      {
+        try
+        {
+          parse!double(x);  
+          return 6;
+        } 
+        catch (ConvException e)
+        {
+            return -6;
+        }
+      }
+      else if(!hasDecimal && (isNegative || (!isByteRange || isPointerRange)))
+      {
+        if(isPointerRange)
+        {
+          try
+          {
+            parse!ushort(x, 16);
+            return 10;
+          }
+          catch (ConvException e)
+          {
+            return -10;
+          }
+        }
+        else 
+        {
+          try
+          {
+            parse!short(x, 16);
+            return 5;
+          }
+          catch (ConvException e)
+          {
+            return -5;
+          }
+        }
+      }
+      else
+      {
+        try
+        {
+          parse!ubyte(x, 16);
+          return 4;
+        }
+        catch (ConvException e)
+        {
+          return -4;
+        }
+      }
+    break;
+    case '&':
+      bool siz = (x.length==16 && x[0] == '0');
+      if(hasDecimal)
+      {
+        try
+        {
+          parse!double(x);  
+          return 9;
+        } 
+        catch (ConvException e)
+        {
+            return -9;
+        }
+      }
+      else if(!hasDecimal && (isNegative || (!isByteRange || isPointerRange) ))
+      {
+        if(siz)
+        {
+          try
+          {
+            parse!short(x, 2);
+            return 8;
+          }
+          catch (ConvException e)
+          {
+            return -8;
+          }
+        }
+        else
+        {
+          try
+          {
+            parse!ushort(x, 2);
+            return 11;
+          }
+          catch (ConvException e)
+          {
+            return -11;
+          }
+        }
+      }
+      else
+      {
+        try
+        {
+          parse!ubyte(x, 2);
+          return 7;
+        }
+        catch (ConvException e)
+        {
+          return -7;
+        }
+      }
+    break;
+    default:
+      return 0;
+    break;
+  }
+}
 
 public Token[] tokenize(Script script)
 {
@@ -389,6 +646,29 @@ public Token[] tokenize(Script script)
                && SUBR_ARGS.canFind(part.text))
       {
         acc ~= Token(part, TokenType.SUBR_ARG);
+      }
+      else if (isNumLiteral(part.text))
+      {
+        int t = getNumType(part.text);
+        final switch(t)
+        {
+          case -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0:
+            writeln("Error: invalid number literal: ", t, " -- ", part.text);
+            exit(1);
+          break;
+          case 1, 4, 7:
+            acc ~= Token(part, TokenType.BYTE_LITERAL);
+          break;
+          case 2, 5, 8:
+            acc ~= Token(part, TokenType.WORD_LITERAL);
+          break;
+          case 3, 6, 9:
+            acc ~= Token(part, TokenType.FLOAT_LITERAL);
+          break;
+          case 10, 11:
+            acc ~= Token(part, TokenType.POINTER_LITERAL);
+          break;
+        }
       }
       else if (part.text[0] == ';')
       {
@@ -437,6 +717,10 @@ public Token[] tokenize(Script script)
       {
         acc ~= Token(part, TokenType.STRING_LITERAL);
       }
+      else if (isNumLiteral(part.text))
+      {
+        writeln(part);
+      }
       else
       {
         writeln("Error: unrecognized token ", part);
@@ -447,242 +731,4 @@ public Token[] tokenize(Script script)
   return acc;
 }
 
-
-
-
-
-
-
-
-// public Token[] tokenizeScript(Script script)
-// {
-//     Token[] tokens;
-//     string[] knownSubroutines;
-//     
-//     for(uint line = 0; line < script.lines; line++)
-//     {
-//        auto currentline = script.fileContent[line];
-//        currentline ~= " "; 
-//         /* append a space to the end of the line. this 
-//            is a dirty patch for a a bug we have here. 
-//            as we go through the characters in a line, we
-//            only collect multi-character tokens after finding
-//            whitespace. if a multi-character token is not
-//            followed by whitespace (is the case at the 
-//            end of the line, because \n is removed somewhere
-//            in the process of getting `fileContent`.)
-//           
-//            BUG: collecting multichar tokens fails at EOL
-//         */
-//         string current = "";
-// 
-//         for(int cha = 0; cha < currentline.length; cha++)
-//         {
-//             char c = currentline[cha];
-//             if(!isWhite(c))
-//             {
-//                 switch(c)
-//                 {
-//                     case ';':
-//                         tokens ~= Token(line, cha, cha, TokenType.COMMENT_MARK, [c]);
-//                         break;
-//                     case '%':
-//                         tokens ~= Token(line, cha, cha, TokenType.DEC_MARK, [c]);
-//                         break;
-//                     case '$':
-//                         tokens ~= Token(line, cha, cha, TokenType.HEX_MARK, [c]);
-//                         break;
-//                     case '&':
-//                         tokens ~= Token(line, cha, cha, TokenType.BIN_MARK, [c]);
-//                         break;
-//                     case '!':
-//                         tokens ~= Token(line, cha, cha, TokenType.REGISTER_MARK, [c]);
-//                         break;
-//                     case '#':
-//                         tokens ~= Token(line, cha, cha, TokenType.NUM_FLAG, [c]);
-//                         break;
-//                     case '?':
-//                         tokens ~= Token(line, cha, cha, TokenType.ARG_FLAG, [c]);
-//                         break;
-//                     case '@':
-//                         tokens ~= Token(line, cha, cha, TokenType.LABEL, [c]);
-//                         break;
-//                     case '[':
-//                         tokens ~= Token(line, cha, cha, TokenType.LBRACE, [c]);
-//                         break;
-//                     case ']':
-//                         tokens ~= Token(line, cha, cha, TokenType.RBRACE, [c]);
-//                         break;
-//                     case ',':
-//                         tokens = secondCheck(line, cha, current, currentline, knownSubroutines, tokens);
-//                         current = "";
-//                         tokens ~= Token(line, cha, cha, TokenType.COMMA, [c]);
-//                         
-//                         break;
-//                     case ':':
-//                         tokens ~= Token(line, cha, cha, TokenType.COLON, [c]);
-//                         break;
-//                     default:
-//                         current ~= c;
-//                         break;
-//                 } 
-//             }
-//             else
-//             {
-//                 tokens = secondCheck(line, cha, current, currentline, knownSubroutines, tokens);
-//                 current = "";
-//             }
-//         }
-//     
-//     }
-//     return tokens;
-// }
-// 
-// /*
-// * This is a hacky way to solve a bug with the special chars that
-// * are used for things but are not seperated by a whitespace.
-// * can thus call the check when one of those chars is encountered to
-// * enusre the token before it is processed correctly.
-// * TODO: refactor to make this not needed.
-// */
-// Token[] secondCheck(int line, int cha, string current, 
-// string currentline, string[] knownSubroutines, Token[] tokens)
-// {
-//     switch(current)
-//     {
-//         case "":
-//             /* multiple whitespace in succession
-//                 generates empty `current`, skip
-//                 these cases */
-//             break;
-//         case MAIN_START:
-//             tokens ~= Token(
-//                 line, cha-MAIN_START.length, cha-1, 
-//                 TokenType.MAIN_START, current);
-//             break;
-//         case MAIN_END:
-//             tokens ~= Token(
-//                 line, cha-MAIN_END.length, cha-1,
-//                 TokenType.MAIN_END, current);
-//             break;
-//         case SUBR_DEF:
-//             tokens ~= Token(
-//                 line, cha-SUBR_DEF.length, cha-1,
-//                 TokenType.SUBR_DEF, current);
-//             break;
-//         case INC_BUILTIN:
-//             tokens ~= Token(
-//                 line, cha-INC_BUILTIN.length, cha-1,
-//                 TokenType.INCLUDE, current);
-//             break;
-//         default:
-//             if(canFind(BUILTINS, current))
-//             {
-//                 tokens ~= Token(
-//                     line, cha-current.length, cha-1,
-//                     TokenType.INTRINSIC_CALL, current);
-//             }
-//             else if (isWordLiteral(current))
-//             {
-//                 tokens ~= Token(
-//                     line, cha-current.length, cha-1,
-//                     TokenType.WORD_LITERAL, current);
-//             }
-//             else if(isRegister(current) > 0)
-//             {
-//                 final switch(isRegister(current))
-//                 {
-//                     case 0:
-//                         break;
-//                     case 1:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.BYTE_REGISTER, current);
-//                         break;
-//                     case 2:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.WORD_REGISTER, current);
-//                         break;
-//                     case 3:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.FLOAT_REGISTER, current);
-//                         break;
-//                     case 4:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.CHAR_REGISTER, current);
-//                         break;
-//                     case 5:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.STRING_REGISTER, current);
-//                         break;
-//                     case 6:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.FLAG_REGISTER, current);
-//                         break;
-//                     case 7:
-//                         tokens ~= Token(
-//                             line, cha-current.length, cha-1,
-//                             TokenType.FILE_REGISTER, current);
-//                         break;
-// 
-//                 }                                             
-//             }
-//             else if(isStringLiteral(current))
-//             {
-//                 tokens ~= Token(
-//                     line, cha-current.length, cha-1,
-//                     TokenType.STRING_LITERAL, current);
-//             }
-//             /* TODO: Add elifs here to handle multi-char tokens. */
-//             else 
-//             {
-//                 writefln("Error: unrecognized token %s", current);
-//                 
-//             }
-//             //break;
-// 
-//         
-// 
-//             //TODO: finish tokenizing based on previous token here
-//             Token prevTok = tokens[$-1];
-//             string currentScope =  "";
-// 
-//             switch(prevTok.type)
-//             {
-//                 case TokenType.SUBR_DEF:
-//                     tokens ~= Token(
-//                     line, cha-current.length, cha-1,
-//                     TokenType.SUBR_NAME, current);
-//                     currentScope = current;
-//                     break;
-//                 case TokenType.SUBR_NAME:
-//                     if(prevTok.loc.line == line)
-//                     {
-//                         tokens ~= Token(
-//                         line, cha-current.length, cha-1,
-//                         TokenType.SUBR_ARG, current);
-//                         currentScope = current;
-//                         knownSubroutines ~= current; 
-//                     }
-//                     break;
-//                 case TokenType.COMMENT_MARK:
-//                     tokens ~= Token(
-//                     line, cha-current.length, cha-1,
-//                     TokenType.COMMENT_TEXT, 
-//                     currentline[prevTok.loc.startLoc+1..$-1]);
-//                     break;
-// 
-//                 default:
-//                     break;
-//             }
-//             break;
-//     }
-// 
-//     return tokens;
-// }
 
