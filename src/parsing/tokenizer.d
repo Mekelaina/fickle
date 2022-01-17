@@ -110,7 +110,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
         branchesExecuted++;
         part ~= c;
         col++; 
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         inStringLiteral = false;
   
@@ -133,7 +133,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
       {
         branchesExecuted++;
         part ~= c;
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         inCharLiteral = false;
         col++; 
@@ -198,11 +198,11 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
       if (part != "") 
       {
         branchesExecuted++;
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         part ~= c;
         col++; 
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         continue;
       }
@@ -217,11 +217,11 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
       if (part != "") 
       {
         branchesExecuted++;
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         part ~= c;
         col++; 
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
         part = "";
         continue;
       }
@@ -236,7 +236,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
       branchesExecuted++;
       if (part != "")
       {
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
       }
       part = "";
       col++; 
@@ -268,7 +268,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
   }
   if (part != "") 
   {
-    acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+    acc ~= Quote(part, file, linenum, col - cast(uint) part.toUTF32.length);
   }
   return acc;
 }
@@ -609,8 +609,9 @@ public Token[] tokenize(Script script)
 {
   Token[] acc = [];
 
-  foreach (uint linenum, string line; script.fileContent)
+  foreach (size_t lnum, string line; script.fileContent)
   {
+    uint linenum = cast(uint) lnum;
     Quote[] parts = splitByTokenBoundaries(script.fileName, linenum, line);
     foreach (Quote part; parts)
     {

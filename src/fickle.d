@@ -23,7 +23,7 @@ struct CLInput
 
     static CLInput defaults()
     {
-        return CLInput([], "", false, false);
+        return CLInput([], "foo.fkl", false, false);
     }
 
     static CLInput parseCommands(string[] args) 
@@ -81,23 +81,16 @@ void usage(string programName)
 const string SOURCE_FILE = "fic";
 const string BINARY_FILE = "fkl";
 
-
-
-void main(string[] args) 
-{    
-    auto clin = CLInput.parseCommands(args);
-    //writeln(clin);
+ubyte[] compileIfNeeded(CLInput clin)
+{
     ubyte[] program;
-    //writeln(clin);
     if(clin.isBinary)
     {
         program = cast(ubyte[])read(clin.filesIn[0]);
-        //program = (cast(ubyte*) &i)[0..i.sizeof];
     }
     else 
     {
         Script[] scripts = parseFiles(clin.filesIn);
-        //writeln(scripts);
         Token[] tokens = tokenize(scripts[0]);
         writeln(tokens);
         Compiler compiler = Compiler();
@@ -107,6 +100,14 @@ void main(string[] args)
         //compiler.test();
         //writeln("loop zoop");
     }
+    return program;
+ 
+}
+
+void main(string[] args) 
+{    
+    auto clin = CLInput.parseCommands(args);
+    ubyte[] program = compileIfNeeded(clin); 
     
     if(clin.fileOut != "")
     {
@@ -134,7 +135,6 @@ void main(string[] args)
     
     if(clin.runPostCompile)
     {
-        //writefln(format("%(%02X%)", program));
         machine.executeProgram(program);
     }
 }
