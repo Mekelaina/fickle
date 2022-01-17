@@ -41,11 +41,9 @@ double toDouble(ubyte[] toCon)
 
 ushort toShort(ubyte[] toCon)
 {
-    ushort ret = toCon[0];
-    ret = cast(ushort) toCon[1];
-    //writeln(ret);
+    ushort ret = cast(ushort) toCon[0];
     ret = cast(ushort) (ret << 8);
-
+    ret += toCon[1];
     return ret;
 }
 

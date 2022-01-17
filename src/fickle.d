@@ -92,7 +92,7 @@ ubyte[] compileIfNeeded(CLInput clin)
     {
         Script[] scripts = parseFiles(clin.filesIn);
         Token[] tokens = tokenize(scripts[0]);
-        writeln(tokens);
+        //writeln(tokens);
         Compiler compiler = Compiler();
         compiler.addScript(tokens);
         program = compiler.compile();
@@ -135,6 +135,7 @@ void main(string[] args)
     
     if(clin.runPostCompile)
     {
+        //writeln("loop");
         machine.executeProgram(program);
     }
 }

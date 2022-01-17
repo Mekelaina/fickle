@@ -315,7 +315,7 @@ bool isNumLiteral(string s)
   //s = s[1..$-2];
   if(s[0] == '%' || s[0] == '$' || s[0] == '&')
   {
-    writeln(s);
+    //writeln(s);
     auto x = s[1..$-1];
     switch(s[0])
     {
@@ -447,9 +447,9 @@ int getNumType(string s)
   bool hasDecimal = canFind(x, '.');
   bool isNegative = canFind(x, '-');
   bool isByteRange = (buf >= ubyte.min && buf <= ubyte.max) ? true : false;
-  writeln(x.length);
+  //writeln(x.length);
   bool isPointerRange =  (x.length == 4);
-  writefln(format("%s, %s, %s, %s", hasDecimal, isNegative, isByteRange, isPointerRange));
+  //writefln(format("%s, %s, %s, %s", hasDecimal, isNegative, isByteRange, isPointerRange));
   
   switch(s[0])
   {

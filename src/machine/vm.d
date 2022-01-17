@@ -302,7 +302,12 @@ struct Scope {
 
     void prt(string s)
     {
-        writeln(s);
+        write(s);
+    }
+
+    void prt(ubyte b)
+    {
+        write(b);
     }
 
     void mov(R register, int address, Ram ram)
@@ -403,8 +408,13 @@ void executeProgram(ubyte[] program)
     //writeln(program.length);
     do
     {
+        //WTF is this????
+        //writeln(program);
+        //ushort x = toShort([program[0], program[1]]);
         currentOp = toShort([program[pc], program[++pc]]);
+        //writefln(format("pc: %s, op: %x",pc, x));
         pc++;
+        //writeln(pc);
         //writefln(format("%x", currentOp));
         switch(currentOp)
         {
@@ -452,6 +462,12 @@ void executeProgram(ubyte[] program)
                     value ~= current;
                 } while(current != 0);
                 mainScope.prt(value);
+            break;
+            case Opcode.PRT_BYTELIT:
+                //writeln("zoop");
+                ubyte b = program[pc++];
+                //writeln(b);
+                mainScope.prt(b);
             break;
             default:
             break;
