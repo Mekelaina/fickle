@@ -23,7 +23,7 @@ struct CLInput
 
     static CLInput defaults()
     {
-        return CLInput([], "", false, false);
+        return CLInput([], "foo.fkl", false, false);
     }
 
     static CLInput parseCommands(string[] args) 
