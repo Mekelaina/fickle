@@ -8,6 +8,7 @@ import std.array;
 import std.range.primitives;
 import std.range : cycle, take;
 import std.format;
+import std.traits;
 
 import compiler.opcode;
 import util.convert;
@@ -16,6 +17,13 @@ import util.convert;
 const AMT_REGISTERS = 14;
 const FFFF = 0xFFFF;
 
+const RegisterValue emptyByte   = RegisterValue(cast(ubyte) 0);
+const RegisterValue emptyWord   = RegisterValue(cast(short) 0);
+const RegisterValue emptyPtr    = RegisterValue(cast(ushort) 0);
+const RegisterValue emptyDouble = RegisterValue(double.nan);
+const RegisterValue emptyChar   = RegisterValue(cast(dchar) '\uFFFF');
+const RegisterValue emptyString = RegisterValue(cast(string) "");
+const RegisterValue emptyBool   = RegisterValue(false);
 
 alias RegisterValue = SumType!(
    uint8_t,
@@ -265,6 +273,8 @@ struct Scope {
        res.ptrs[R.y ] = cast(uintptr_t) &res.underlying.y;    
        return res;
     }
+
+    //======= mov methods ========\\
     void mov(R register, RegisterValue val)
     {
         /* NOTE: this raises an exception on an invalid mov, 
@@ -303,6 +313,57 @@ struct Scope {
         } 
     }
 
+    void mov(R registerTo, R registerFrom)
+    {
+        final switch(registerFrom)
+        {
+            case R.b0, R.b1:
+                uint8_t b = *(cast(uint8_t*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(b));
+                break;
+            case R.w0, R.w1:
+                int16_t w = *(cast(int16_t*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(w));
+                break;
+            case R.p0, R.p1:
+                uint16_t p = *(cast(uint16_t*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(p));
+                break;
+            case R.f0, R.f1:
+                double d = *(cast(double*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(d));
+                break;
+            case R.c0, R.c1:
+                dchar c = *(cast(dchar*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(c));
+                break;
+            case R.s0, R.s1:
+                string s = *(cast(string*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(s));
+                break;
+            case R.x, R.y:
+                bool l = *(cast(bool*) this.ptrs[registerFrom]);
+                mov(registerTo, RegisterValue(l));
+                break;
+
+        }
+    }
+
+    void mov(R register, int address, Ram ram)
+    in {
+        assert(address <= FFFF);
+    } do {
+        mov(register, cast(ushort) address, ram);
+    }
+
+    void mov(R register, ushort address, Ram ram)
+    {
+        auto val = ram.ram[address];
+        mov(register, RegisterValue(val));
+    } 
+    
+    //======= prt methods =======\\
+
     void prt(R register)
     {
         //writeln(register);
@@ -319,19 +380,8 @@ struct Scope {
         write(b);
     }
 
-    void mov(R register, int address, Ram ram)
-    in {
-        assert(address <= FFFF);
-    } do {
-        mov(register, cast(ushort) address, ram);
-    }
+    //====== bnd methods =======\\
 
-    void mov(R register, ushort address, Ram ram)
-    {
-        auto val = ram.ram[address];
-        mov(register, RegisterValue(val));
-    } 
-    
     void bnd(R register, uint8_t* ptr)
     {
         if (register == R.b0 || register == R.b1)
@@ -403,7 +453,62 @@ struct Scope {
 
     }
 
+    void clr(R register)
+    {
+        final switch(register)
+        {
+            case R.b0:
+                mov(R.b0, emptyByte);
+                break;
+            case R.b1:
+                mov(R.b1, emptyByte);
+                break;
+            case R.w0:
+                mov(R.w0, emptyWord);
+                break;
+            case R.w1:
+                mov(R.w1, emptyWord);
+                break;
+            case R.p0:
+                mov(R.p0, emptyPtr);
+                break;
+            case R.p1:
+                mov(R.p1, emptyPtr);
+                break;
+            case R.f0:
+                mov(R.f0, emptyDouble);
+                break;
+            case R.f1:
+                mov(R.f1, emptyDouble);
+                break;
+            case R.c0:
+                mov(R.c0, emptyChar);
+                break;
+            case R.c1:
+                mov(R.c1, emptyChar);
+                break;
+            case R.s0:
+                mov(R.s0, emptyString);
+                break;
+            case R.s1:
+                mov(R.s1, emptyString);
+                break;
+            case R.x:
+                mov(R.x, emptyBool);
+                break;
+            case R.y:
+                mov(R.y, emptyBool);
+                break;
+        }
+    }
  
+    void clr()
+    {
+        foreach (register; EnumMembers!R)
+        {
+            clr(register);
+        }
+    }
 }
 
 void executeProgram(ubyte[] program)
@@ -491,10 +596,14 @@ void testVM() {
     Ram ram = Ram();
     Stack stack = Stack();
 
-    RegisterValue fourtwenty = cast(short) 420;
+    RegisterValue fourtwenty = cast(short) 65;
     RegisterValue haha = cast(ushort) 0xFFFF; 
     mainScope.mov(R.w0, fourtwenty);
-    //writeln(mainScope);
+    mainScope.mov(R.p0,haha);
+    writeln(mainScope);
+    mainScope.clr();
+    writeln(mainScope);
+    /* //writeln(mainScope);
     mainScope.mov(R.p0, haha);    
     auto anotherScope = Scope.create();
     mainScope.mov(R.s0, cast(RegisterValue) cast(string) "hello");
@@ -512,7 +621,7 @@ void testVM() {
     stack.push(cast(RegisterValue) cast(ubyte) 2);
     writeln(stack);
     stack.cycleStack(cast(ushort) 3, 2);
-    writeln(stack);
+    writeln(stack); */
     //writeln(mainScope);
 
     

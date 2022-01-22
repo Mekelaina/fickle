@@ -106,8 +106,8 @@ ubyte[] compileIfNeeded(CLInput clin)
 
 void main(string[] args) 
 {    
-    runMachine(args);
-    //testVM();
+    //runMachine(args);
+    testVM();
 }
 
 void runMachine(string[] args)
