@@ -13,13 +13,14 @@ import compiler.opcode;
 import util.convert;
 
 
-const AMT_REGISTERS = 12;
+const AMT_REGISTERS = 14;
 const FFFF = 0xFFFF;
 
 
 alias RegisterValue = SumType!(
    uint8_t,
    int16_t,
+   uint16_t,
    double,
    dchar,
    string,
@@ -32,16 +33,18 @@ enum R {
     f0, f1,
     c0, c1,
     s0, s1,
+    p0, p1,
      x,  y
 }
 
 struct Registers {
-    uint8_t b0, b1;
-    int16_t w0, w1;
-    double  f0, f1;
-    dchar   c0, c1;
-    string  s0, s1;
-    bool     x,  y;
+    uint8_t  b0, b1;
+    int16_t  w0, w1;
+    uint16_t p0, p1;
+    double   f0, f1;
+    dchar    c0, c1;
+    string   s0, s1;
+    bool      x,  y;
 
 }
 
@@ -249,7 +252,9 @@ struct Scope {
        res.ptrs[R.b0] = cast(uintptr_t) &res.underlying.b0; 
        res.ptrs[R.b1] = cast(uintptr_t) &res.underlying.b1; 
        res.ptrs[R.w0] = cast(uintptr_t) &res.underlying.w0; 
-       res.ptrs[R.w1] = cast(uintptr_t) &res.underlying.w1; 
+       res.ptrs[R.w1] = cast(uintptr_t) &res.underlying.w1;
+       res.ptrs[R.p0] = cast(uintptr_t) &res.underlying.p0;
+       res.ptrs[R.p1] = cast(uintptr_t) &res.underlying.p1; 
        res.ptrs[R.f0] = cast(uintptr_t) &res.underlying.f0; 
        res.ptrs[R.f1] = cast(uintptr_t) &res.underlying.f1; 
        res.ptrs[R.c0] = cast(uintptr_t) &res.underlying.c0; 
@@ -273,6 +278,10 @@ struct Scope {
             case R.w0, R.w1:
                 alias movw = (int16_t w) { *(cast(int16_t*) this.ptrs[register]) = w; };
                 val.tryMatch!(movw);
+                break;
+            case R.p0, R.p1:
+                alias movp = (uint16_t p) {*(cast(uint16_t*) this.ptrs[register]) = p; };
+                val.tryMatch!(movp);
                 break;
             case R.f0, R.f1:
                 alias movf = (double f) { *(cast(double*) this.ptrs[register]) = f; };
@@ -425,13 +434,13 @@ void executeProgram(ubyte[] program)
                     run = false;
                 }
                 continue;
-            break;
+                break;
             case Opcode.MAIN_START:
                 continue;
-            break;
+                break;
             case Opcode.MAIN_END:
                 continue;
-            break;
+                break;
             case Opcode.MOV_STRREG_LIT:
                 //writeln(currentOp);
                 auto reg = program[pc++];
@@ -447,12 +456,12 @@ void executeProgram(ubyte[] program)
                 mainScope.mov(reg == 0 ? R.s0 : R.s1, RegisterValue(value));
                 //pc++;
                 //writeln(mainScope);
-            break;
+                break;
             case Opcode.PRT_STRREG:
                 auto reg = program[pc++];
                 //writefln(format("DEBUG: %s", reg));
                 mainScope.prt(reg == 0 ? R.s0 : R.s1);
-            break;
+                break;
             case Opcode.PRT_STRLIT:
                 string value;
                 ubyte current;
@@ -462,36 +471,38 @@ void executeProgram(ubyte[] program)
                     value ~= current;
                 } while(current != 0);
                 mainScope.prt(value);
-            break;
+                break;
             case Opcode.PRT_BYTELIT:
                 //writeln("zoop");
                 ubyte b = program[pc++];
                 //writeln(b);
                 mainScope.prt(b);
-            break;
+                break;
             default:
-            break;
+                break;
         }
         //writeln(pc);
     } while(pc+1 < program.length);
 }
 
-void test() {
+void testVM() {
 
     auto mainScope = Scope.create();
     Ram ram = Ram();
     Stack stack = Stack();
 
-    RegisterValue fourtwenty = cast(short) 420; 
+    RegisterValue fourtwenty = cast(short) 420;
+    RegisterValue haha = cast(ushort) 0xFFFF; 
     mainScope.mov(R.w0, fourtwenty);
     //writeln(mainScope);
-    
+    mainScope.mov(R.p0, haha);    
     auto anotherScope = Scope.create();
     mainScope.mov(R.s0, cast(RegisterValue) cast(string) "hello");
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
     
-    //writeln(mainScope);
+    writeln(mainScope);
+    writeln(haha);
 
     ram.insertAt(0x4269, 0xFF);
     mainScope.mov(R.b0, 0x4269, ram);
@@ -503,17 +514,6 @@ void test() {
     stack.cycleStack(cast(ushort) 3, 2);
     writeln(stack);
     //writeln(mainScope);
-
-    /* Ram ram = Ram();
-    writeln(ram.getAt(0x4269));
-    ram.insertAt(0x4269, 0xFF);
-    auto t = ram.getAt(0x4269); 
-    writeln(t);
-    ram.clearRam();
-    writeln(ram.getRange(0x4261, 0x4269));
-    ram.mapToRange(0x4261, 0x4269, [RegisterValue(0xFF)]);
-    ram.insertAt(0x4266, 0x00);
-    writeln(ram.getRange(0x4261, 0x4269)); */
 
     
 

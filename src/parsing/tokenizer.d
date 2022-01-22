@@ -164,7 +164,7 @@ Quote[] splitByTokenBoundaries(string file, uint linenum, string line)
       else if(part.length > 1 && isWhite(c))
       {
         branchesExecuted++;
-        acc ~= Quote(part, file, linenum, col-part.toUTF32.length);
+        acc ~= Quote(part, file, linenum, cast(uint) (col-part.toUTF32.length));
       }
     } 
     else if (inComment)

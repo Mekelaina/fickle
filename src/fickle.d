@@ -23,7 +23,7 @@ struct CLInput
 
     static CLInput defaults()
     {
-        return CLInput([], "foo.fkl", false, false);
+        return CLInput([], "", false, false);
     }
 
     static CLInput parseCommands(string[] args) 
@@ -106,6 +106,12 @@ ubyte[] compileIfNeeded(CLInput clin)
 
 void main(string[] args) 
 {    
+    runMachine(args);
+    //testVM();
+}
+
+void runMachine(string[] args)
+{
     auto clin = CLInput.parseCommands(args);
     ubyte[] program = compileIfNeeded(clin); 
     
@@ -139,7 +145,6 @@ void main(string[] args)
         machine.executeProgram(program);
     }
 }
-
 
 /*
  * TODO: consider removing this function.
