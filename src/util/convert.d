@@ -12,19 +12,19 @@ union DoubleConv
 
 }
 
-ubyte[] toBytes(ushort toCon)
+ubyte[] ushortToBytes(ushort toCon)
 {
     //bool t = isSigned!(toCon);
     //writefln(format("%s, %s: %s", toCon.stringof, toCon, t));
     return [cast(ubyte) (cast(short) (toCon >> 8)), cast(ubyte) toCon];
 }
 
-ubyte[] toBytes(short toCon, int a)
+ubyte[] shortToBytes(short toCon)
 {
     return [cast(ubyte) (cast(short) (toCon >> 8)), cast(ubyte) toCon];
 }
 
-ubyte[] toBytes(double toCon)
+ubyte[] uShortToBytes(double toCon)
 {
     DoubleConv test = DoubleConv(toCon);
     ubyte[8] t = test.b;
@@ -32,14 +32,22 @@ ubyte[] toBytes(double toCon)
     return t.dup;
 }
 
-double toDouble(ubyte[] toCon)
+double byteToDouble(ubyte[] toCon)
 {
     //ubyte[8] x = r[0..$-1];
     double rtn = *cast(double*)toCon.ptr;
     return rtn;
 }
 
-ushort toShort(ubyte[] toCon)
+short byteToShort(ubyte[] toCon)
+{
+    short ret = cast(short) toCon[0];
+    ret = cast(short) (ret << 8);
+    ret += toCon[1];
+    return ret;
+}
+
+ushort byteToUShort(ubyte[] toCon)
 {
     ushort ret = cast(ushort) toCon[0];
     ret = cast(ushort) (ret << 8);

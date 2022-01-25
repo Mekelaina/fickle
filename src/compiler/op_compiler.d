@@ -60,6 +60,7 @@ enum Register {
     NULL,
     b0, b1,
     w0, w1,
+    p0, p1,
     f0, f1,
     c0, c1,
     s0, s1,
@@ -70,6 +71,7 @@ enum Literal {
     NULL,
     BYTE,
     WORD,
+    POINTER,
     DOUBLE,
     CHAR,
     STRING,
@@ -91,10 +93,10 @@ struct Compiler
     void test()
     {
         double d = 65.43;
-        auto b = toBytes(d);
-        double nd = toDouble(b);
+        auto b = ushortToUByte(d);
+        double nd = byteToDouble(b);
         writeln(nd);
-        //writefln(format("%(%02X%)", toBytes(d)));
+        //writefln(format("%(%02X%)", ushortToUByte(d)));
     }
 
     ubyte[] compile()
@@ -102,7 +104,7 @@ struct Compiler
         //writefln(format("prt_bytelit: %x, prt_wordlit: %x, prt_doublelit: %x, prt_charlit: %x", 
          //   Opcode.PRT_BYTELIT, Opcode.PRT_WORDLIT, Opcode.PRT_DOUBLELIT, Opcode.PRT_CHARLIT));
         auto script = scripts[0];
-        program ~= toBytes(Opcode.BOUND);
+        program ~= ushortToUByte(Opcode.BOUND);
         Intrinsics currentIntrinsic = Intrinsics.NULL;
         Register currentRegister = Register.NULL;
         Literal currentLiteral = Literal.NULL;
@@ -113,10 +115,10 @@ struct Compiler
             switch(token.type)
             {
                 case TokenType.MAIN_START:
-                    program ~= toBytes(Opcode.MAIN_START);
+                    program ~= ushortToUByte(Opcode.MAIN_START);
                 break;
                 case TokenType.MAIN_END:
-                    program ~= toBytes(Opcode.MAIN_END);
+                    program ~= ushortToUByte(Opcode.MAIN_END);
                 break;
                 case TokenType.INTRINSIC_CALL:
                     switch(token.value.text)
@@ -193,7 +195,7 @@ struct Compiler
                                 case Literal.NULL:
                                 break;
                                 case Literal.STRING:
-                                    program ~= toBytes(Opcode.MOV_STRREG_LIT);
+                                    program ~= ushortToUByte(Opcode.MOV_STRREG_LIT);
                                     program ~= cast(ubyte) 0;
                                     program ~= currentValue;
                                     program ~= cast(ubyte) 0x00;
@@ -205,6 +207,8 @@ struct Compiler
                                 case Literal.BYTE:
                                 break;
                                 case Literal.WORD:
+                                break;
+                                case Literal.POINTER:
                                 break;
                                 case Literal.DOUBLE:
                                 break;
@@ -251,8 +255,8 @@ struct Compiler
                                     case '%':
                                         if(canFind(currentValue,"."))
                                         {
-                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
-                                            program ~= toBytes(parse!double(t));
+                                            program ~= ushortToUByte(Opcode.PRT_DOUBLELIT);
+                                            program ~= ushortToUByte(parse!double(t));
                                             currentIntrinsic = Intrinsics.NULL;
                                             currentValue = "";
                                         } 
@@ -261,8 +265,8 @@ struct Compiler
                                             int temp = parse!int(t);
                                             if(temp >= short.min && temp <= short.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -276,7 +280,7 @@ struct Compiler
                                             if(temp >= ubyte.min && temp <= ubyte.max)
                                             {
                                                 
-                                                program ~= toBytes(Opcode.PRT_BYTELIT);
+                                                program ~= ushortToUByte(Opcode.PRT_BYTELIT);
                                                 auto a = cast(ubyte) temp;
                                                 program ~= a;
                                                 //writeln(a);
@@ -286,8 +290,8 @@ struct Compiler
                                             else if(temp >= short.min && temp <= short.max)
                                             {
                                                 //writeln("eggu");
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -300,9 +304,9 @@ struct Compiler
                                     case '$':
                                         if(canFind(currentValue,"."))
                                         {
-                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
+                                            program ~= ushortToUByte(Opcode.PRT_DOUBLELIT);
                                             int buf = parse!int(t);
-                                            program ~= toBytes(to!double(buf));
+                                            program ~= ushortToUByte(to!double(buf));
                                             currentIntrinsic = Intrinsics.NULL;
                                             currentValue = "";
                                         } 
@@ -311,8 +315,8 @@ struct Compiler
                                             int temp = parse!int(t, 16);
                                             if(temp >= short.min && temp <= short.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t, 16));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t, 16));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -323,15 +327,15 @@ struct Compiler
                                             int temp = parse!int(t, 16);
                                             if(temp >= ubyte.min && temp <= ubyte.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_BYTELIT);
+                                                program ~= ushortToUByte(Opcode.PRT_BYTELIT);
                                                 program ~= parse!ubyte(t, 16);
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             } 
                                             else if(temp >= short.min && temp <= short.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t, 16));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t, 16));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -344,9 +348,9 @@ struct Compiler
                                     case '&':
                                         if(canFind(currentValue,"."))
                                         {
-                                            program ~= toBytes(Opcode.PRT_DOUBLELIT);
+                                            program ~= ushortToUByte(Opcode.PRT_DOUBLELIT);
                                             double buf = parse!double(t);
-                                            program ~= toBytes(buf);
+                                            program ~= ushortToUByte(buf);
                                             currentIntrinsic = Intrinsics.NULL;
                                             currentValue = "";
                                         } 
@@ -355,8 +359,8 @@ struct Compiler
                                             int temp = parse!int(t);
                                             if(temp >= short.min && temp <= short.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t, 2));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t, 2));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -367,15 +371,15 @@ struct Compiler
                                             int temp = parse!int(t);
                                             if(temp >= ubyte.min && temp <= ubyte.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_BYTELIT);
-                                                program ~= toBytes(parse!byte(t, 2));
+                                                program ~= ushortToUByte(Opcode.PRT_BYTELIT);
+                                                program ~= ushortToUByte(parse!byte(t, 2));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             } 
                                             else if(temp >= short.min && temp <= short.max)
                                             {
-                                                program ~= toBytes(Opcode.PRT_WORDLIT);
-                                                program ~= toBytes(parse!short(t, 2));
+                                                program ~= ushortToUByte(Opcode.PRT_WORDLIT);
+                                                program ~= ushortToUByte(parse!short(t, 2));
                                                 currentIntrinsic = Intrinsics.NULL;
                                                 currentValue = "";
                                             }
@@ -389,7 +393,7 @@ struct Compiler
                                         
                                     break;
                                     default:
-                                        program ~= toBytes(Opcode.PRT_STRLIT);
+                                        program ~= ushortToUByte(Opcode.PRT_STRLIT);
                                         program ~= currentValue;
                                         program ~= cast(ubyte) 0;
                                         currentValue = "";
@@ -399,20 +403,46 @@ struct Compiler
                             }
                         break;
                         case Register.s0, Register.s1:
-                            program ~= toBytes(Opcode.PRT_STRREG);
+                            program ~= ushortToUByte(Opcode.PRT_STRREG);
                             program ~= currentRegister == Register.s0 ? cast(ubyte) 0 : cast(ubyte) 1;
                             currentIntrinsic = Intrinsics.NULL;
                             currentRegister = Register.NULL;
                         break;
                         case Register.b0, Register.b1:
+                            program ~= ushortToUByte(Opcode.PRT_BYTEREG);
+                            program ~= currentRegister == Register.b0 ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
                         break;
                         case Register.w0, Register.w1:
+                            program ~= ushortToUByte(Opcode.PRT_WORDREG);
+                            program ~= currentRegister == Register.w0 ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
+                        break;
+                        case Register.p0, Register.p1:
+                            program ~= ushortToUByte(Opcode.PRT_PTRREG);
+                            program ~= currentRegister == Register.p0 ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
                         break;
                         case Register.f0, Register.f1:
+                            program ~= ushortToUByte(Opcode.PRT_DOUBLEREG);
+                            program ~= currentRegister == Register.f0 ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
                         break;
                         case Register.c0, Register.c1:
+                            program ~= ushortToUByte(Opcode.PRT_CHARREG);
+                            program ~= currentRegister == Register.c0 ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
                         break;
                         case Register.x, Register.y:
+                            program ~= ushortToUByte(Opcode.PRT_BOOLREG);
+                            program ~= currentRegister == Register.x ? cast(ubyte) 0 : cast(ubyte) 1;
+                            currentIntrinsic = Intrinsics.NULL;
+                            currentRegister = Register.NULL;
                         break;
                     }
                 break;
@@ -420,7 +450,7 @@ struct Compiler
                 break;
             }   
         }
-        program ~= toBytes(Opcode.BOUND);
+        program ~= ushortToUByte(Opcode.BOUND);
 
         return program;
     }

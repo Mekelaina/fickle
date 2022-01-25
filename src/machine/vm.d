@@ -38,10 +38,10 @@ alias RegisterValue = SumType!(
 enum R {
     b0, b1,
     w0, w1,
+    p0, p1,
     f0, f1,
     c0, c1,
     s0, s1,
-    p0, p1,
      x,  y
 }
 
@@ -453,6 +453,8 @@ struct Scope {
 
     }
 
+    //======= clr methods =======\\
+
     void clr(R register)
     {
         final switch(register)
@@ -525,7 +527,7 @@ void executeProgram(ubyte[] program)
         //WTF is this????
         //writeln(program);
         //ushort x = toShort([program[0], program[1]]);
-        currentOp = toShort([program[pc], program[++pc]]);
+        currentOp = byteToUShort([program[pc], program[++pc]]);
         //writefln(format("pc: %s, op: %x",pc, x));
         pc++;
         //writeln(pc);
@@ -562,10 +564,31 @@ void executeProgram(ubyte[] program)
                 //pc++;
                 //writeln(mainScope);
                 break;
-            case Opcode.PRT_STRREG:
+            case Opcode.MOV_BYTEREG_LIT:
                 auto reg = program[pc++];
-                //writefln(format("DEBUG: %s", reg));
-                mainScope.prt(reg == 0 ? R.s0 : R.s1);
+                auto value = program[pc++];
+                mainScope.mov(reg == 0 ? R.b0 : R.b1, RegisterValue(value));
+                break;
+            case Opcode.MOV_WORDREG_LIT:
+                auto reg = program[pc++];
+                auto value = [program[pc++], program[pc++]];
+                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(byteToShort(value)));
+                break;
+            case Opcode.MOV_DOUBLEREG_LIT:
+                auto reg = program[pc++];
+                auto value = program[pc..pc+8];
+                pc += 8;
+                mainScope.mov(reg == 0 ? R.f0 : R.f1, RegisterValue(byteToDouble(value)));
+                break;
+            case Opcode.MOV_POINTERREG_LIT:
+                auto reg = program[pc++];
+                auto value = [program[pc++], program[pc++]];
+                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(byteToUShort(value)));
+                break;
+            case Opcode.MOV_CHARREG_LIT:
+                auto reg = program[pc++];
+                break;
+            case Opcode.MOV_BOOLREG_LIT:
                 break;
             case Opcode.PRT_STRLIT:
                 string value;
@@ -577,11 +600,28 @@ void executeProgram(ubyte[] program)
                 } while(current != 0);
                 mainScope.prt(value);
                 break;
+            case Opcode.PRT_STRREG:
+                auto reg = program[pc++];
+                //writefln(format("DEBUG: %s", reg));
+                mainScope.prt(reg == 0 ? R.s0 : R.s1);
+                break;
             case Opcode.PRT_BYTELIT:
                 //writeln("zoop");
                 ubyte b = program[pc++];
                 //writeln(b);
                 mainScope.prt(b);
+                break;
+            case Opcode.PRT_BYTEREG:
+                auto reg = program[pc++];
+                mainScope.prt(reg == 0 ? R.b0 : R.b1);
+                break;
+            case Opcode.PRT_WORDLIT:
+                auto w = [program[pc++], program[pc++]];
+                mainScope.prt(byteToShort(w));
+                break;
+            case Opcode.PRT_WORDREG:
+                auto reg = program[pc++];
+                mainScope.prt(reg == 0 ? R.w0 : R.w1);
                 break;
             default:
                 break;
