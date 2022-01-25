@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use super::{Result, ProgramError};
 use super::register::{Register};
+use super::register::{Ptr};
 
 #[derive(Debug, Clone)]
 pub struct Stack {
@@ -100,9 +101,9 @@ mod tests {
     use super::*;
 
     const X: Register = Register::Byte(1);
-    const Y: Register = Register::Short(2);
-    const Z: Register = Register::Double(3.14);
-    const A: Register = Register::ShortSigned(-42);
+    const Y: Register = Register::Word(2);
+    const Z: Register = Register::Float(3.14);
+    const A: Register = Register::Pointer(Ptr::Register(41));
     const B: Register = Register::Char('🦀');
     const C: Register = Register::Bool(true);
 
@@ -248,7 +249,7 @@ mod tests {
         s.push(X)?;
         s.push(Y)?;
         s.push(Z)?;
-        assert_eq!(s.to_string(), "[Byte(1), Short(2), Double(3.14)]");
+        assert_eq!(s.to_string(), "[Byte(1), Word(2), Float(3.14)]");
         Ok(())
     }
 }
