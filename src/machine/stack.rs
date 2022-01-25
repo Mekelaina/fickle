@@ -1,16 +1,5 @@
 #![allow(dead_code)]
-use super::{Result, ProgramError};
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Register {
-    Byte(u8),
-    ShortSigned(i16),
-    Short(u16),
-    Double(f64),
-    Char(char),
-    //String{ptr: u16, len: u16},
-    Bool(bool),
-}
+use super::{Result, ProgramError, Register};
 
 pub struct Stack {
     stack: [Register; 1024],
