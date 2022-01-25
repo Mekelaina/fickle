@@ -60,11 +60,11 @@ struct Ram {
     //NOTE: all the methods that take ints are just convenience wrappers
     //that call their ushort counterparts with the appropriate cast
     //so we dont have to cast each input each time.
-    
+
     //the single value methods wrap the input in an array and pass it
     //to the array input methods. which check for single values and
     //and map it to the given range.
-    
+
     private ubyte[FFFF] ram = 0;
 
     void clearRam()
@@ -89,7 +89,7 @@ struct Ram {
         assert((end-start) % value.sizeof == 0);
     } do {
         mapToRange(cast(ushort) start, cast(ushort) end, [value]);
-    } 
+    }
 
     void mapToRange(int start, int end, RegisterValue value)
     in {
@@ -144,19 +144,23 @@ struct Ram {
 }
 
 struct Stack {
-    
+
     private RegisterValue[1024] stack;
     private ushort stackPointer = 0;
     private const RegisterValue ZERO = RegisterValue(cast(uint8_t) 0);
 
+    /// Removes every element from the stack.
     void clearStack()
     {
-        stack[0..stackPointer] = ZERO;
+        // [a b c d ...] -> []
+        //stack[0..stackPointer] = ZERO;
         stackPointer = 0;
     }
 
+    /// Adds an element to the top of the stack.
     void push (RegisterValue value)
     {
+        // [] -> [value]
         if(stackPointer < 1024)
         {
             stack[stackPointer] = value;
@@ -164,126 +168,141 @@ struct Stack {
         }
     }
 
+    /// Removes and returns the element on the top of the stack.
     RegisterValue pop ()
     {
-       auto rtn = stack[stackPointer-1];
-       stack[stackPointer-1] = ZERO;
-       stackPointer--;
-       return rtn;
+        // [a] -> [], returns `a`
+        stackPointer--;
+        auto rtn = stack[stackPointer];
+        //stack[stackPointer] = ZERO;
+        return rtn;
     }
 
+    /// Returns the element on the top of the stack without changing the stack.
     RegisterValue peek()
     {
+        // [a] -> [a], returns `a`
         return stack[stackPointer-1];
     }
 
+    /// Removes the element on the top of the stack.
     void drop()
     {
-        stack[stackPointer-1] = ZERO;
-        stackPointer--;
+        // [a] -> []
+        pop();
     }
 
+    /// Duplicates the element on the top of the stack.
     void duplicate()
     {
-        if(stackPointer < 1024)
-        {
-            auto top = stack[stackPointer-1];
-            stackPointer++;
-            stack[stackPointer-1] = top;
-        }
+        // [a] -> [a a]
+        push(peek());
     }
 
+    /// Switches the top two elements on the stack.
     void swap()
     {
-        auto top = stack[stackPointer-1];
-        auto second = stack[stackPointer-2];
-        //writefln(format("DEBUG: %s, %s", top, second));
-        stack[stackPointer-1] = second;
-        stack[stackPointer-2] = top;
+        // [a b] -> [b a]
+        auto first = pop();
+        auto second = pop();
+        //writefln(format("DEBUG: %s, %s", first, second));
+        push(first);
+        push(second);
     }
 
+    /// Returns the number of elements on the stack.
     ushort getSize()
     {
         return stackPointer;
     }
 
+
+    /// Rotates the top `elements` number of elements on the stack.
     void cycleStack(ushort elements, ushort cycles)
     in {
         assert(cycles < elements);
     } do {
-        RegisterValue[] buffer = stack[(stackPointer-elements)..(stackPointer)];
-        RegisterValue[] temp = array(cycle(buffer).take(elements*2));
-        /* writefln(format("%s, %s, %s, %s, %s, %s", stackPointer-elements, stackPointer, 
-            cycles-1, elements, temp, temp[1..4])); */
-        stack[(stackPointer-elements)..stackPointer] = temp[cycles-1..elements+1];
+        // [n_1 n_2 n_3 ... n_elements] -> [n_(cycles+1) ... n_elements n_1 n_2 n_3 ... n_cycles]
+        // e.g.
+        // elements = 3, [a b c], cycle = 1 -> [b c a]
+        // elements = 3, [a b c], cycle = 2 -> [c a b]
+        // elements = 5, [a b c d e], cycle = 3 -> [d e a b c]
+        int bottom = stackPointer-elements;
+        RegisterValue[] buffer = stack[bottom..stackPointer];
+        RegisterValue[] temp = buffer ~ buffer;
+        /* writefln(format("%s, %s, %s, %s, %s", bottom, stackPointer,
+            cycles, elements, temp)); */
+        stack[bottom..stackPointer] = temp[cycles..cycles+elements];
     }
 
+    /// Reverses the entire stack.
     void flip()
     {
+        // [a b c d ... w x y z] -> [z y x w ... d c b a]
         RegisterValue[] buffer;
-        for(int i = stackPointer; i >= 0; i--)
+        for(int i = stackPointer - 1; i >= 0; i--)
         {
             buffer ~= stack[i];
-            writeln(stack[i]);
+            //writeln(stack[i]);
         }
         //writefln(format("DEBUG: %s", buffer));
-        buffer = buffer[1..$];
+        //buffer = buffer[1..$];
         stack[0..stackPointer] = buffer;
     }
 
-    string toString() const @safe pure 
+    /// Returns a list of the elements of the stack in string form.
+    string toString() const @safe pure
     {
         return to!(string)(stack[0..stackPointer]);
     }
-    
 }
 
 
 
 struct Scope {
-    
-    /* Layout of ptrs should look something like this: 
+
+    /* Layout of ptrs should look something like this:
         uint8_t* b0, b1
         int16_t* w0, w1
         double*  f0, f1
         dchar*   c0, c1
         bool*     x,  y
     */
-    uintptr_t[AMT_REGISTERS] ptrs; 
-    Registers underlying; 
+    uintptr_t[AMT_REGISTERS] ptrs;
+    Registers underlying;
     /* NOTE: i removed ram and stack from here because
        ram and stack aren't scoped, they're global */
 
     static Scope create() {
        auto res = Scope();
        res.underlying = Registers();
-       res.ptrs[R.b0] = cast(uintptr_t) &res.underlying.b0; 
-       res.ptrs[R.b1] = cast(uintptr_t) &res.underlying.b1; 
-       res.ptrs[R.w0] = cast(uintptr_t) &res.underlying.w0; 
+       res.ptrs[R.b0] = cast(uintptr_t) &res.underlying.b0;
+       res.ptrs[R.b1] = cast(uintptr_t) &res.underlying.b1;
+       res.ptrs[R.w0] = cast(uintptr_t) &res.underlying.w0;
        res.ptrs[R.w1] = cast(uintptr_t) &res.underlying.w1;
        res.ptrs[R.p0] = cast(uintptr_t) &res.underlying.p0;
-       res.ptrs[R.p1] = cast(uintptr_t) &res.underlying.p1; 
-       res.ptrs[R.f0] = cast(uintptr_t) &res.underlying.f0; 
-       res.ptrs[R.f1] = cast(uintptr_t) &res.underlying.f1; 
-       res.ptrs[R.c0] = cast(uintptr_t) &res.underlying.c0; 
+       res.ptrs[R.p1] = cast(uintptr_t) &res.underlying.p1;
+       res.ptrs[R.f0] = cast(uintptr_t) &res.underlying.f0;
+       res.ptrs[R.f1] = cast(uintptr_t) &res.underlying.f1;
+       res.ptrs[R.c0] = cast(uintptr_t) &res.underlying.c0;
        res.ptrs[R.c1] = cast(uintptr_t) &res.underlying.c1;
        res.ptrs[R.s0] = cast(uintptr_t) &res.underlying.s0;
-       res.ptrs[R.s1] = cast(uintptr_t) &res.underlying.s1; 
-       res.ptrs[R.x ] = cast(uintptr_t) &res.underlying.x;    
-       res.ptrs[R.y ] = cast(uintptr_t) &res.underlying.y;    
+       res.ptrs[R.s1] = cast(uintptr_t) &res.underlying.s1;
+       res.ptrs[R.x ] = cast(uintptr_t) &res.underlying.x;
+       res.ptrs[R.y ] = cast(uintptr_t) &res.underlying.y;
        return res;
     }
 
     //======= mov methods ========\\
     void mov(R register, RegisterValue val)
     {
-        /* NOTE: this raises an exception on an invalid mov, 
+        /* NOTE: this raises an exception on an invalid mov,
                  which may not be desired behavior. */
-        final switch (register) 
+        final switch (register)
         {
             case R.b0, R.b1:
                 alias movb = (uint8_t b) { *(cast(uint8_t*) this.ptrs[register]) = b; };
-                val.tryMatch!(movb); 
+                val.tryMatch!(movb);
                 break;
             case R.w0, R.w1:
                 alias movw = (int16_t w) { *(cast(int16_t*) this.ptrs[register]) = w; };
@@ -309,8 +328,8 @@ struct Scope {
                 alias movx = (bool x) { *(cast(bool*) this.ptrs[register]) = x; };
                 val.tryMatch!(movx);
                 break;
- 
-        } 
+
+        }
     }
 
     void mov(R registerTo, R registerFrom)
@@ -360,8 +379,8 @@ struct Scope {
     {
         auto val = ram.ram[address];
         mov(register, RegisterValue(val));
-    } 
-    
+    }
+
     //======= prt methods =======\\
 
     void prt(R register)
@@ -386,10 +405,10 @@ struct Scope {
     {
         if (register == R.b0 || register == R.b1)
         {
-            this.ptrs[register] = cast(uintptr_t) ptr;     
+            this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-byte register to byte ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-byte register to byte ptr");
         }
 
     }
@@ -398,22 +417,22 @@ struct Scope {
     {
         if (register == R.w0 || register == R.w1)
         {
-            this.ptrs[register] = cast(uintptr_t) ptr;     
+            this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-word register to word ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-word register to word ptr");
         }
 
     }
-   
+
     void bnd(R register, double* ptr)
     {
         if (register == R.f0 || register == R.f1)
         {
-            this.ptrs[register] = cast(uintptr_t) ptr;     
+            this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-float register to float ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-float register to float ptr");
         }
 
     }
@@ -422,10 +441,10 @@ struct Scope {
     {
         if (register == R.c0 || register == R.c1)
         {
-            this.ptrs[register] = cast(uintptr_t) ptr;     
+            this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-char register to char ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-char register to char ptr");
         }
 
     }
@@ -437,7 +456,7 @@ struct Scope {
             this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-string register to string ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-string register to string ptr");
         }
     }
 
@@ -445,10 +464,10 @@ struct Scope {
     {
         if (register == R.x || register == R.y)
         {
-            this.ptrs[register] = cast(uintptr_t) ptr;     
+            this.ptrs[register] = cast(uintptr_t) ptr;
         }
         else {
-            throw new Exception("invalid bnd, cannot bind non-bool register to bool ptr"); 
+            throw new Exception("invalid bnd, cannot bind non-bool register to bool ptr");
         }
 
     }
@@ -503,7 +522,7 @@ struct Scope {
                 break;
         }
     }
- 
+
     void clr()
     {
         foreach (register; EnumMembers!R)
@@ -535,7 +554,7 @@ void executeProgram(ubyte[] program)
         switch(currentOp)
         {
             case Opcode.BOUND:
-                
+
                 if(pc == (cast(int) program.length - 1))
                 {
                     run = false;
@@ -553,7 +572,7 @@ void executeProgram(ubyte[] program)
                 auto reg = program[pc++];
                 string value;
                 ubyte current;
-                do 
+                do
                 {
                     current = program[pc++];
                     value ~= current;
@@ -593,7 +612,7 @@ void executeProgram(ubyte[] program)
             case Opcode.PRT_STRLIT:
                 string value;
                 ubyte current;
-                do 
+                do
                 {
                     current = program[pc++];
                     value ~= current;
@@ -637,19 +656,19 @@ void testVM() {
     Stack stack = Stack();
 
     RegisterValue fourtwenty = cast(short) 65;
-    RegisterValue haha = cast(ushort) 0xFFFF; 
+    RegisterValue haha = cast(ushort) 0xFFFF;
     mainScope.mov(R.w0, fourtwenty);
     mainScope.mov(R.p0,haha);
     writeln(mainScope);
     mainScope.clr();
     writeln(mainScope);
     /* //writeln(mainScope);
-    mainScope.mov(R.p0, haha);    
+    mainScope.mov(R.p0, haha);
     auto anotherScope = Scope.create();
     mainScope.mov(R.s0, cast(RegisterValue) cast(string) "hello");
     anotherScope.bnd(R.w1, cast(int16_t*) mainScope.ptrs[R.w1]);
     anotherScope.mov(R.w1, cast(RegisterValue) cast(short) 69);
-    
+
     writeln(mainScope);
     writeln(haha);
 
@@ -664,6 +683,6 @@ void testVM() {
     writeln(stack); */
     //writeln(mainScope);
 
-    
+
 
 }
