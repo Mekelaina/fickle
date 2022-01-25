@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use super::{Result, ProgramError, Register};
+use super::{Result, ProgramError};
+use super::register::{Register};
 
 pub struct Stack {
     stack: [Register; 1024],
@@ -57,8 +58,8 @@ mod tests {
     use super::*;
 
     const X: Register = Register::Byte(1);
-    const Y: Register = Register::Short(2);
-    const Z: Register = Register::Double(3.14);
+    const Y: Register = Register::Word(2);
+    const Z: Register = Register::Float(3.14);
 
     #[test]
     fn push_pop() -> Result<()> {
