@@ -28,18 +28,18 @@ ubyte[] uShortToBytes(double toCon)
 {
     DoubleConv test = DoubleConv(toCon);
     ubyte[8] t = test.b;
-    
+
     return t.dup;
 }
 
-double byteToDouble(ubyte[] toCon)
+double bytesToDouble(ubyte[] toCon)
 {
     //ubyte[8] x = r[0..$-1];
     double rtn = *cast(double*)toCon.ptr;
     return rtn;
 }
 
-short byteToShort(ubyte[] toCon)
+short bytesToShort(ubyte[] toCon)
 {
     short ret = cast(short) toCon[0];
     ret = cast(short) (ret << 8);
@@ -47,7 +47,7 @@ short byteToShort(ubyte[] toCon)
     return ret;
 }
 
-ushort byteToUShort(ubyte[] toCon)
+ushort bytesToUShort(ubyte[] toCon)
 {
     ushort ret = cast(ushort) toCon[0];
     ret = cast(ushort) (ret << 8);

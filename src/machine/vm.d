@@ -399,6 +399,11 @@ struct Scope {
         write(b);
     }
 
+    void prt(ushort b)
+    {
+        write(b);
+    }
+
     //====== bnd methods =======\\
 
     void bnd(R register, uint8_t* ptr)
@@ -546,7 +551,7 @@ void executeProgram(ubyte[] program)
         //WTF is this????
         //writeln(program);
         //ushort x = toShort([program[0], program[1]]);
-        currentOp = byteToUShort([program[pc], program[++pc]]);
+        currentOp = bytesToUShort([program[pc], program[++pc]]);
         //writefln(format("pc: %s, op: %x",pc, x));
         pc++;
         //writeln(pc);
@@ -591,18 +596,18 @@ void executeProgram(ubyte[] program)
             case Opcode.MOV_WORDREG_LIT:
                 auto reg = program[pc++];
                 auto value = [program[pc++], program[pc++]];
-                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(byteToShort(value)));
+                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(bytesToShort(value)));
                 break;
             case Opcode.MOV_DOUBLEREG_LIT:
                 auto reg = program[pc++];
                 auto value = program[pc..pc+8];
                 pc += 8;
-                mainScope.mov(reg == 0 ? R.f0 : R.f1, RegisterValue(byteToDouble(value)));
+                mainScope.mov(reg == 0 ? R.f0 : R.f1, RegisterValue(bytesToDouble(value)));
                 break;
             case Opcode.MOV_POINTERREG_LIT:
                 auto reg = program[pc++];
                 auto value = [program[pc++], program[pc++]];
-                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(byteToUShort(value)));
+                mainScope.mov(reg == 0 ? R.w0 : R.w1, RegisterValue(bytesToUShort(value)));
                 break;
             case Opcode.MOV_CHARREG_LIT:
                 auto reg = program[pc++];
@@ -636,7 +641,7 @@ void executeProgram(ubyte[] program)
                 break;
             case Opcode.PRT_WORDLIT:
                 auto w = [program[pc++], program[pc++]];
-                mainScope.prt(byteToShort(w));
+                mainScope.prt(bytesToShort(w));
                 break;
             case Opcode.PRT_WORDREG:
                 auto reg = program[pc++];
