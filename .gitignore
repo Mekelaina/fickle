@@ -1,10 +1,2 @@
-.dub
-fickle
-build.sh
-*.exe
-*.o
-*.obj
-*.lst
-*.bat
-*.code-workspace
-*.ps1
+/target
+Cargo.lock
