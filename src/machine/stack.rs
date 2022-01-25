@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use super::{ProgramError, Register, Result};
+use super::{Result, ProgramError};
+use super::register::{Register};
 
 #[derive(Debug, Clone)]
 pub struct Stack {
