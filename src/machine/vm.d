@@ -15,7 +15,6 @@ import util.convert;
 
 
 const AMT_REGISTERS = 14;
-const FFFF = 0xFFFF;
 
 const RegisterValue emptyByte   = RegisterValue(cast(ubyte) 0);
 const RegisterValue emptyWord   = RegisterValue(cast(short) 0);
@@ -65,7 +64,7 @@ struct Ram {
     //to the array input methods. which check for single values and
     //and map it to the given range.
 
-    private ubyte[FFFF] ram = 0;
+    private ubyte[0x10000] ram = 0;
 
     void clearRam()
     {
@@ -370,7 +369,7 @@ struct Scope {
 
     void mov(R register, int address, Ram ram)
     in {
-        assert(address <= FFFF);
+        assert(address <= 0xFFFF);
     } do {
         mov(register, cast(ushort) address, ram);
     }
