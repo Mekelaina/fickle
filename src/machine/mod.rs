@@ -1,10 +1,9 @@
 #![allow(dead_code)]
 
-mod stack;
-mod scope;
+// mod ram; // Uncomment this when starting work on the Ram module
 mod register;
-
-
+mod scope;
+mod stack;
 
 //type _Result<T, E> = std::result::Result<T, E>;
 pub type Result<T> = std::result::Result<T, ProgramError>;
@@ -14,6 +13,3 @@ pub enum ProgramError {
     StackOverflow,
     StackUnderflow,
 }
-
-
-
