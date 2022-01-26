@@ -59,13 +59,14 @@ impl Stack {
     }
 
     pub fn dup(&mut self) -> Result<()> {
-        self.push(self.peek()?)?;
-        Ok(())
+        let top = self.peek()?;
+        self.push(top)
     }
 
     pub fn swap(&mut self) -> Result<()> {
         let first = self.pop()?;
         let second = self.pop()?;
+        // Theoretically this should never panic.
         self.push(first).unwrap();
         self.push(second).unwrap();
         Ok(())
