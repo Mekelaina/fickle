@@ -121,6 +121,7 @@ mod tests {
         Ok(())
     }
 
+
     #[test]
     fn wrong_ptr_typ() -> Result<()> {
         let mut rpool = RegisterPool::new();
@@ -141,5 +142,6 @@ mod tests {
         rpool.free(first)?;
         assert!(rpool.alloc_with(A).is_ok());
         Ok(())
+
     }
 }

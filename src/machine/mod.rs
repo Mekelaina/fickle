@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+
+// mod ram; // Uncomment this when starting work on the Ram module
 mod register;
 mod scope;
 mod stack;

@@ -73,6 +73,15 @@ impl Stack {
     }
 
     pub fn cycle(&mut self, elements: usize, cycles: usize) -> Result<()> {
+        // Any internal `cycle` call where cycles >= elements is likely erroneous.
+        // Alternatively, especially if the arguments can be set by user code, either
+        // `cycles` should wrap or this panic should be converted to a ProgramError.
+        if cycles >= elements {
+            panic!(
+                "Number of cycles ({}) must be less than the number of elements ({})",
+                cycles, elements
+            );
+        }
         if let Some(bottom) = self.pointer.checked_sub(elements) {
             let slice = &self.stack[bottom..self.pointer];
             let rotated: Vec<_> = slice.iter().chain(slice).skip(cycles).copied().collect();
@@ -227,6 +236,30 @@ mod tests {
         assert_eq!(s.pop()?, A);
         assert_eq!(s.pop(), Err(ProgramError::StackUnderflow));
         Ok(())
+    }
+
+    #[test]
+    #[should_panic = "Number of cycles (5) must be less than the number of elements (5)"]
+    fn cycle_panic_equal() {
+        let mut s = Stack::new();
+        for _ in 0..20 {
+            if s.push(A).is_err() {
+                return;
+            }
+        }
+        let _ = s.cycle(5, 5);
+    }
+
+    #[test]
+    #[should_panic = "Number of cycles (6) must be less than the number of elements (5)"]
+    fn cycle_panic_greater() {
+        let mut s = Stack::new();
+        for _ in 0..20 {
+            if s.push(A).is_err() {
+                return;
+            }
+        }
+        let _ = s.cycle(5, 6);
     }
 
     #[test]
