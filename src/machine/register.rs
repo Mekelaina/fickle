@@ -119,11 +119,10 @@ mod tests {
 
 
     #[test]
-    fn wrong_ptr_typ() -> Result<()> {
+    fn wrong_ptr_typ() {
         let  rpool = RegisterPool::new();
         let wrong_ptr = Ptr::Memory(420);
         assert_eq!(rpool.get(wrong_ptr), Err(ProgramError::InvalidPointer));
-        Ok(())
     }
 
     #[test]
