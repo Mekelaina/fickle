@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+
 // mod ram; // Uncomment this when starting work on the Ram module
 mod register;
 mod scope;
@@ -12,4 +13,6 @@ pub type Result<T> = std::result::Result<T, ProgramError>;
 pub enum ProgramError {
     StackOverflow,
     StackUnderflow,
+    InvalidPointer,
+    TooManyRegisters,
 }
