@@ -43,11 +43,11 @@ impl RegisterPool {
         todo!();
     }
 
-    fn free(&self, ptr: Ptr) -> Result<()> {
+    fn free(&self, _ptr: Ptr) -> Result<()> {
         todo!();
     }
 
-    fn get(&self, ptr: &Ptr) -> Result<&Register> {
+    fn get(&self, _ptr: &Ptr) -> Result<&Register> {
         todo!();
     }
 }
