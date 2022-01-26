@@ -1,5 +1,5 @@
-use super::register::{Ptr, REGISTER_AMT};
-
+use super::pointer::{Ptr};
+use super::register::REGISTER_AMT;
 #[derive(Debug)]
 pub struct Scope([Ptr; REGISTER_AMT]);
 

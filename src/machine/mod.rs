@@ -5,6 +5,7 @@
 mod register;
 mod scope;
 mod stack;
+mod pointer;
 
 //type _Result<T, E> = std::result::Result<T, E>;
 pub type Result<T> = std::result::Result<T, ProgramError>;

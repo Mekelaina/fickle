@@ -1,5 +1,6 @@
 use super::ProgramError;
 use super::Result;
+use super::pointer::Ptr;
 use std::collections::HashMap;
 use std::ops::Index;
 
@@ -17,14 +18,7 @@ pub enum Register {
     Bool(bool),
 }
 
-//TODO: move this to a seperate module. It doesn't belong in the 
-// register module.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Ptr {
-    Register(u16),
-    Static(u16),
-    Memory(u16),
-}
+
 
 const MAX_REGISTERS: usize = 1024;
 
@@ -126,7 +120,7 @@ mod tests {
 
     #[test]
     fn wrong_ptr_typ() -> Result<()> {
-        let mut rpool = RegisterPool::new();
+        let  rpool = RegisterPool::new();
         let wrong_ptr = Ptr::Memory(420);
         assert_eq!(rpool.get(wrong_ptr), Err(ProgramError::InvalidPointer));
         Ok(())

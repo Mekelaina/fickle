@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use super::register::Register;
 use super::{ProgramError, Result};
-use super::register::Ptr;
+
 
 #[derive(Debug, Clone)]
 pub struct Stack {
@@ -109,11 +109,12 @@ impl std::fmt::Display for Stack {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::pointer::Ptr;
 
     const X: Register = Register::Byte(1);
     const Y: Register = Register::Word(2);
     const Z: Register = Register::Float(3.14);
-    const A: Register = Register::Pointer(Ptr::Register(41));
+    const A: Register = Register::Pointer(Ptr::Memory(41));
     const B: Register = Register::Char('🦀');
     const C: Register = Register::Bool(true);
 
