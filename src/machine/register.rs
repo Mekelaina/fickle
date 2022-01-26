@@ -17,6 +17,8 @@ pub enum Register {
     Bool(bool),
 }
 
+//TODO: move this to a seperate module. It doesn't belong in the 
+// register module.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Ptr {
     Register(u16),
