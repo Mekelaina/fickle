@@ -1,8 +1,8 @@
+use super::pointer::Ptr;
 use super::ProgramError;
 use super::Result;
-use super::pointer::Ptr;
 use std::collections::HashMap;
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 /* two registers of each type */
 pub const REGISTER_AMT: usize = 12;
@@ -21,13 +21,19 @@ pub enum Register {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Reg {
-    b0, b1, 
-    w0, w1, 
-    p0, p1, 
-    f0, f1,
-    c0, c1,
+    b0,
+    b1,
+    w0,
+    w1,
+    p0,
+    p1,
+    f0,
+    f1,
+    c0,
+    c1,
     // s0, s1,
-    x,  y,
+    x,
+    y,
 }
 
 const MAX_REGISTERS: usize = 1024;
@@ -43,6 +49,12 @@ impl Index<Ptr> for RegisterPool {
 
     fn index(&self, ptr: Ptr) -> &Self::Output {
         self.get(ptr).unwrap()
+    }
+}
+
+impl IndexMut<Ptr> for RegisterPool {
+    fn index_mut(&mut self, ptr: Ptr) -> &mut Self::Output {
+        self.get_mut(ptr).unwrap()
     }
 }
 
@@ -106,6 +118,18 @@ impl RegisterPool {
             Err(ProgramError::InvalidPointer)
         }
     }
+
+    pub fn get_mut(&mut self, ptr: Ptr) -> Result<&mut Register> {
+        if let Ptr::Register(rp) = ptr {
+            if let Some(reg) = self.pool.get_mut(&rp) {
+                Ok(reg)
+            } else {
+                Err(ProgramError::InvalidPointer)
+            }
+        } else {
+            Err(ProgramError::InvalidPointer)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -113,6 +137,7 @@ mod tests {
     use super::*;
 
     const A: Register = Register::Bool(false);
+    const B: Register = Register::Bool(true);
 
     #[test]
     fn alloc_free() -> Result<()> {
@@ -127,10 +152,20 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn mutate() -> Result<()> {
+        let mut rpool = RegisterPool::new();
+        let ptr = rpool.alloc_with(A)?;
+        assert_eq!(rpool[ptr], A);
+        rpool[ptr] = B;
+        assert_eq!(rpool[ptr], B);
+        rpool.free(ptr)?;
+        Ok(())
+    }
 
     #[test]
     fn wrong_ptr_typ() {
-        let  rpool = RegisterPool::new();
+        let rpool = RegisterPool::new();
         let wrong_ptr = Ptr::Memory(420);
         assert_eq!(rpool.get(wrong_ptr), Err(ProgramError::InvalidPointer));
     }
@@ -147,6 +182,5 @@ mod tests {
         rpool.free(first)?;
         assert!(rpool.alloc_with(A).is_ok());
         Ok(())
-
     }
 }
