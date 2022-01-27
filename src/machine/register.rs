@@ -1,6 +1,6 @@
+use super::pointer::Ptr;
 use super::ProgramError;
 use super::Result;
-use super::pointer::Ptr;
 use std::collections::HashMap;
 use std::ops::Index;
 
@@ -21,13 +21,19 @@ pub enum Register {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Reg {
-    b0, b1, 
-    w0, w1, 
-    p0, p1, 
-    f0, f1,
-    c0, c1,
+    b0,
+    b1,
+    w0,
+    w1,
+    p0,
+    p1,
+    f0,
+    f1,
+    c0,
+    c1,
     // s0, s1,
-    x,  y,
+    x,
+    y,
 }
 
 const MAX_REGISTERS: usize = 1024;
@@ -127,10 +133,9 @@ mod tests {
         Ok(())
     }
 
-
     #[test]
     fn wrong_ptr_typ() {
-        let  rpool = RegisterPool::new();
+        let rpool = RegisterPool::new();
         let wrong_ptr = Ptr::Memory(420);
         assert_eq!(rpool.get(wrong_ptr), Err(ProgramError::InvalidPointer));
     }
@@ -147,6 +152,5 @@ mod tests {
         rpool.free(first)?;
         assert!(rpool.alloc_with(A).is_ok());
         Ok(())
-
     }
 }

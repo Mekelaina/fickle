@@ -2,7 +2,6 @@
 use super::register::Register;
 use super::{ProgramError, Result};
 
-
 #[derive(Debug, Clone)]
 pub struct Stack {
     pointer: usize,
@@ -108,8 +107,8 @@ impl std::fmt::Display for Stack {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::pointer::Ptr;
+    use super::*;
 
     const X: Register = Register::Byte(1);
     const Y: Register = Register::Word(2);
