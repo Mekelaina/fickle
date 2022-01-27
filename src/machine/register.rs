@@ -18,7 +18,17 @@ pub enum Register {
     Bool(bool),
 }
 
-
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Reg {
+    b0, b1, 
+    w0, w1, 
+    p0, p1, 
+    f0, f1,
+    c0, c1,
+    // s0, s1,
+    x,  y,
+}
 
 const MAX_REGISTERS: usize = 1024;
 
